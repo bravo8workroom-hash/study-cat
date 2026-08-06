@@ -382,6 +382,22 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       <div class="k">전체 초기화</div>
       <button class="setbtn warn" id="resetBtn" onclick="resetAll()">초기화 (두 번 누르면 실행)</button>
     </div>
+    <div class="setrow" style="border:1.5px dashed var(--mist)">
+      <div class="k">🛠 개발자 메뉴 (테스트용)</div>
+      <p class="tip" style="margin:2px 0 12px">화면을 미리 확인하는 용도예요. 여기서 바꾼 것은 이 휴대폰에만 적용돼요.</p>
+      <div class="k">세션 2 강제 전환 (요일 무시)</div>
+      <div class="segs" id="devSegK2" style="flex-wrap:wrap"></div>
+      <p class="tip" style="margin:6px 0 0">평소엔 화·목=수학, 토=주간 복습, 나머지=영어예요. 암기·문제 세트는 아래 샘플을 먼저 넣어야 보여요.</p>
+      <div class="k" style="margin-top:14px">세션 순서 잠금 (1→2→3)</div>
+      <div class="segs" id="devSegLock"></div>
+      <div class="k" style="margin-top:14px">수학 출발점 진단</div>
+      <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devDiagSkip()">진단 건너뛰기 → 3단계로 (사다리 확인)</button>
+      <button class="setbtn" style="background:var(--cream)" onclick="devDiagReset()">진단 다시 하기 (리셋)</button>
+      <div class="k" style="margin-top:14px">샘플 자료 (암기 카드·문제 세트 화면 확인)</div>
+      <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devSampleDeck()">[샘플] 사회 암기 세트 넣기</button>
+      <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devSampleSet()">[샘플] 수학 문제 세트 넣기</button>
+      <button class="setbtn warn" onclick="devSampleClear()">샘플 자료만 지우기</button>
+    </div>
     <p class="tip">기록은 휴대폰 안에 저장돼. <b>엄마 모드 → 기록 공유</b>를 켜면 엄마 폰에서도 볼 수 있어!</p>
     </div>
   </section>
@@ -665,6 +681,7 @@ function migrate(){
   if(!S.settings.noteStage)S.settings.noteStage=1;
   if(!S.settings.load)S.settings.load="normal";
   if(!Array.isArray(S.noteArc))S.noteArc=[];
+  if(!S.dev)S.dev={k2:"",unlock:false};
   Object.keys(S.words||{}).forEach(function(id){var w=S.words[id];if(!w.sp)w.sp=1;if(w.spOk===undefined)w.spOk=0;});
   Object.keys(S.log).forEach(function(k){var l=S.log[k];if(!l.m)l.m=[0,0];if(l.sp===undefined)l.sp=false;if(l.wk===undefined)l.wk=false;if(l.ag===undefined)l.ag=false;if(l.nt===undefined)l.nt=0;});
 }
@@ -814,7 +831,7 @@ function renderHome(){
   const list=$("sessionList");list.innerHTML="";
   SESSION_DEF.forEach((sd,i)=>{
     const done=log.s[i];
-    const locked=i>0&&!log.s[i-1];
+    const locked=i>0&&!log.s[i-1]&&!(S.dev&&S.dev.unlock);
     const b=document.createElement("button");
     b.className="scard"+(done?" done":locked?" lock":"");
     let desc=sd.desc;
@@ -1098,6 +1115,56 @@ function renderSet(){
     b.onclick=()=>{S.settings.newPerDay=n;save();renderSet();toast("내일부터 하루 "+n+"개!");};
     seg.appendChild(b);
   });
+  renderDev();
+}
+
+/* ── 개발자 메뉴 (테스트용) ── */
+function renderDev(){
+  const k2=$("devSegK2");k2.innerHTML="";
+  [["","자동(요일)"],["eng","영어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"]].forEach(function(p){
+    const b=document.createElement("button");
+    b.className="seg"+((S.dev.k2||"")===p[0]?" on":"");b.textContent=p[1];b.style.flex="1 1 30%";
+    b.onclick=function(){S.dev.k2=p[0];save();renderDev();toast(p[0]?"세션 2를 강제로 바꿨어요 — 홈에서 확인!":"요일대로 돌아갔어요");};
+    k2.appendChild(b);
+  });
+  const lk=$("devSegLock");lk.innerHTML="";
+  [[false,"평소대로 잠금"],[true,"잠금 해제"]].forEach(function(p){
+    const b=document.createElement("button");
+    b.className="seg"+(!!S.dev.unlock===p[0]?" on":"");b.textContent=p[1];
+    b.onclick=function(){S.dev.unlock=p[0];save();renderDev();toast(p[0]?"세션을 순서 없이 열 수 있어요":"1→2→3 순서 잠금으로 돌아갔어요");};
+    lk.appendChild(b);
+  });
+}
+function devDiagSkip(){
+  S.math.diagDone=true;S.math.level=3;S.math.hist=[];S.math.hi=[];save();
+  toast("진단 완료 처리 (3단계) — 홈의 수학 사다리를 확인해요");
+}
+function devDiagReset(){
+  S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};save();
+  toast("진단을 리셋했어요 — 홈의 수학 스트립에서 다시 시작");
+}
+function devSampleDeck(){
+  try{toast(handleImport({type:"words",subject:"social",setName:"[샘플] 사회 암기",items:[
+    {front:"조선을 건국한 사람",back:"이성계 (1392년)"},
+    {front:"훈민정음을 만든 왕",back:"세종대왕"},
+    {front:"삼국 통일을 이룬 나라",back:"신라"},
+    {front:"고려를 세운 사람",back:"왕건"},
+    {front:"임진왜란이 일어난 연도",back:"1592년"}
+  ]}));}catch(e){toast(e.message);}
+}
+function devSampleSet(){
+  try{toast(handleImport({type:"quiz",subject:"math",setName:"[샘플] 수학 문제",items:[
+    {question:"3x + 5 = 20일 때 x는?",choices:["3","5","15","25"],answer:1,explanation:"3x = 15 → x = 5",topic:"일차방정식"},
+    {question:"(-4) + 7 = ?",choices:["-11","-3","3","11"],answer:2,explanation:"부호가 다르면 큰 수에서 작은 수를 빼요",topic:"정수 계산"},
+    {question:"2/5를 소수로 나타내면?",choices:["0.2","0.25","0.4","2.5"],answer:2,explanation:"2 ÷ 5 = 0.4",topic:"분수와 소수"},
+    {question:"x - 8 = 4일 때 x는?",choices:["4","8","12","16"],answer:2,explanation:"x = 4 + 8 = 12",topic:"일차방정식"}
+  ]}));}catch(e){toast(e.message);}
+}
+function devSampleClear(){
+  S.imp.decks=S.imp.decks.filter(function(d){return String(d.name).indexOf("[샘플]")!==0;});
+  S.imp.quiz=S.imp.quiz.filter(function(s){return String(s.name).indexOf("[샘플]")!==0;});
+  S.imp.log=S.imp.log.filter(function(l){return String(l.name||"").indexOf("[샘플]")!==0;});
+  save();toast("샘플 자료를 지웠어요");
 }
 function exportData(){
   const blob=new Blob([JSON.stringify(buildExport(),null,2)],{type:"application/json"});
@@ -1294,6 +1361,7 @@ function buildDiag(){
 }
 
 function sessionKind(k){
+  if(S.dev&&S.dev.k2)return S.dev.k2;
   const p=examPhase();
   if(p){
     if(p==="memo"&&pendingDecks().length)return "deck";
