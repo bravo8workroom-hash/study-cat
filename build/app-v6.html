@@ -20,6 +20,7 @@ body{
   background:var(--ink); color:var(--paper);
   font-family:'Montserrat','Apple SD Gothic Neo','Noto Sans KR',-apple-system,sans-serif;
   font-weight:500; overscroll-behavior:none;
+  word-break:keep-all; overflow-wrap:break-word;
 }
 #app{max-width:430px;margin:0 auto;min-height:100dvh;position:relative;padding:0 18px 110px}
 
@@ -194,6 +195,14 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
 .wsrow .meta .n{color:#D97B5A;flex:none}
 .wsrow .ans{margin-top:5px;font-size:12.5px;font-weight:700;color:var(--slate)}
 .setrow .tip{margin:10px 0 0;font-size:12px;color:var(--slate)}
+/* 개발자 메뉴 — 학습 내용 열람 */
+.dvout{margin-top:10px;max-height:48vh;overflow-y:auto;border:1.6px solid #E4E2EE;border-radius:14px;padding:4px 10px;background:#FBFAF6}
+.dvout h5{font-size:13px;font-weight:800;color:var(--ink);margin:12px 0 2px;padding-bottom:4px;border-bottom:1.6px solid #E4E2EE}
+.dvi{padding:8px 2px;border-bottom:1px dashed #ECEAF3;font-size:13px;line-height:1.65;color:var(--ink)}
+.dvi:last-child{border-bottom:none}
+.dvi .a{color:#2E7D5B;font-weight:800}
+.dvi .x{color:var(--slate);font-size:12px}
+.dvcnt{font-variant-numeric:tabular-nums}
 .phead{display:flex;justify-content:space-between;align-items:center;padding:22px 2px 16px}
 .pinrow{display:flex;gap:8px}
 .pinrow input{flex:1;border:1.6px solid #E4E2EE;border-radius:14px;padding:12px;font-size:15px;font-family:inherit;font-weight:600}
@@ -397,6 +406,11 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devSampleDeck()">[샘플] 사회 암기 세트 넣기</button>
       <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devSampleSet()">[샘플] 수학 문제 세트 넣기</button>
       <button class="setbtn warn" onclick="devSampleClear()">샘플 자료만 지우기</button>
+      <div class="k" style="margin-top:14px">학습 내용 열람 (아이 화면 안 거치고 여기서 확인)</div>
+      <p class="tip" style="margin:2px 0 8px">메뉴를 누르면 그 학습 내용이 아래에 바로 나와요. 수학·주간 복습은 자동 출제라 예시를 새로 뽑을 수 있어요.</p>
+      <div class="segs" id="devViewMenu" style="flex-wrap:wrap"></div>
+      <div class="segs" id="devViewSub" style="flex-wrap:wrap;margin-top:8px;display:none"></div>
+      <div id="devViewOut"></div>
     </div>
     <p class="tip">기록은 휴대폰 안에 저장돼. <b>엄마 모드 → 기록 공유</b>를 켜면 엄마 폰에서도 볼 수 있어!</p>
     </div>
@@ -1134,6 +1148,7 @@ function renderDev(){
     b.onclick=function(){S.dev.unlock=p[0];save();renderDev();toast(p[0]?"세션을 순서 없이 열 수 있어요":"1→2→3 순서 잠금으로 돌아갔어요");};
     lk.appendChild(b);
   });
+  renderDevView();
 }
 function devDiagSkip(){
   S.math.diagDone=true;S.math.level=3;S.math.hist=[];S.math.hi=[];save();
@@ -1151,6 +1166,7 @@ function devSampleDeck(){
     {front:"고려를 세운 사람",back:"왕건"},
     {front:"임진왜란이 일어난 연도",back:"1592년"}
   ]}));}catch(e){toast(e.message);}
+  renderDevView();
 }
 function devSampleSet(){
   try{toast(handleImport({type:"quiz",subject:"math",setName:"[샘플] 수학 문제",items:[
@@ -1159,12 +1175,122 @@ function devSampleSet(){
     {question:"2/5를 소수로 나타내면?",choices:["0.2","0.25","0.4","2.5"],answer:2,explanation:"2 ÷ 5 = 0.4",topic:"분수와 소수"},
     {question:"x - 8 = 4일 때 x는?",choices:["4","8","12","16"],answer:2,explanation:"x = 4 + 8 = 12",topic:"일차방정식"}
   ]}));}catch(e){toast(e.message);}
+  renderDevView();
 }
 function devSampleClear(){
   S.imp.decks=S.imp.decks.filter(function(d){return String(d.name).indexOf("[샘플]")!==0;});
   S.imp.quiz=S.imp.quiz.filter(function(s){return String(s.name).indexOf("[샘플]")!==0;});
   S.imp.log=S.imp.log.filter(function(l){return String(l.name||"").indexOf("[샘플]")!==0;});
   save();toast("샘플 자료를 지웠어요");
+  renderDevView();
+}
+
+/* ── 개발자: 학습 내용 열람 (개발자 메뉴 안에서 바로 확인) ── */
+let dvMenu="",dvSub="all";
+const DV_MENUS=[["eng","영어 단어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"],["wrong","오답"],["all","전체"]];
+function dvOpts(opts,ans){return '<span class="x">보기: '+(opts||[]).map(function(o){return String(o)===String(ans)?'<b class="a">'+esc(o)+'</b>':esc(o);}).join(" · ")+'</span>';}
+function dvMathItem(p){
+  return '<div class="dvi">'+esc(p.q)+'<br>'+dvOpts(p.opts||opts4(p.a,p.wrong),p.a)+(p.steps&&p.steps.length?'<br><span class="x">풀이: '+p.steps.map(esc).join(" → ")+'</span>':"")+'</div>';
+}
+function dvMathLevel(lv,n){
+  let h='<h5>'+lv+'단계 · '+M_LEVELS[lv-1].name+' <span class="x">예시 '+n+'문제</span></h5>';
+  for(let i=0;i<n;i++)h+=dvMathItem(genMath(lv));
+  return h;
+}
+function dvDiag(){
+  let h='<h5>출발점 진단 · 총 20문제</h5><div class="dvi x">구성: '+DIAG_PLAN.map(function(r){return r[0]+" "+r[2]+"문제";}).join(" · ")+'</div>';
+  buildDiag().forEach(function(p){h+=dvMathItem(p);});
+  return h;
+}
+function dvEng(mode){
+  const imp=WORDS.length-WORDS_BASE;
+  let h='<h5>영어 단어 · 기본 '+WORDS_BASE+'개 + 불러온 '+imp+'개 <span class="x">✓=배운 단어</span></h5>';
+  if(mode==="imp"&&!imp)return h+'<div class="dvi x">불러온 단어가 없어요.</div>';
+  const from=mode==="imp"?WORDS_BASE:0,to=mode==="base"?WORDS_BASE:WORDS.length;
+  for(let i=from;i<to;i++){
+    const w=WORDS[i];
+    h+='<div class="dvi"><span class="dvcnt">'+(i+1)+'.</span> <b>'+esc(w[0])+'</b> — '+esc(w[1])+(S.words[i]?' <span class="a">✓</span>':"")+(i>=WORDS_BASE?' <span class="x">(불러옴)</span>':"")+(w[2]?'<br><span class="x">'+esc(w[2])+(w[3]?" · "+esc(w[3]):"")+'</span>':"")+'</div>';
+  }
+  return h;
+}
+function dvWeek(){
+  let h='<h5>주간 복습 (토요일) · 구성</h5><div class="dvi x">수학 '+amt(6)+'문제(현재 '+mathLevel()+'단계) + 영어 '+amt(6)+'문제(배운 단어 중 무작위)를 섞어서 내요. 완료하면 +50P.</div>';
+  h+='<h5>수학 부분 예시</h5>';buildMathSet(amt(6)).forEach(function(p){h+=dvMathItem(p);});
+  h+='<h5>영어 부분 예시</h5>';
+  const es=buildEngSet(amt(6));
+  if(!es.length)h+='<div class="dvi x">아직 배운 단어가 없어서 예시를 못 만들어요. 세션 1을 한 번 하면 생겨요.</div>';
+  else es.forEach(function(p){h+='<div class="dvi"><b>'+esc(p.q)+'</b> — 무슨 뜻일까?<br>'+dvOpts(p.opts,p.a)+'</div>';});
+  return h;
+}
+function dvDecks(){
+  const ds=decks();
+  if(!ds.length)return '<h5>암기 카드</h5><div class="dvi x">암기 세트가 없어요. 위 [샘플] 버튼으로 넣어서 볼 수 있어요.</div>';
+  let h="";
+  ds.forEach(function(d){
+    h+='<h5>'+esc(d.name)+' · '+subjName(d.subject)+' <span class="x">'+d.cards.length+'장 · 본 카드 '+deckLearned(d)+'장</span></h5>';
+    d.cards.forEach(function(c,i){const st=(d.srs||{})[i];h+='<div class="dvi">'+esc(c.front)+' → <b class="a">'+esc(c.back)+'</b> <span class="x">'+(st?"다음 복습 "+esc(st.due):"아직 안 봄")+'</span></div>';});
+  });
+  return h;
+}
+function dvSets(){
+  const ss=(S.imp&&S.imp.quiz)||[];
+  if(!ss.length)return '<h5>문제 세트</h5><div class="dvi x">문제 세트가 없어요. 위 [샘플] 버튼으로 넣어서 볼 수 있어요.</div>';
+  let h="";
+  ss.forEach(function(s){
+    h+='<h5>'+esc(s.name)+' <span class="x">'+s.items.length+'문제'+(s.done?" · 완료됨":"")+'</span></h5>';
+    s.items.forEach(function(it,i){
+      h+='<div class="dvi"><span class="dvcnt">'+(i+1)+'.</span> '+esc(it.question)+'<br>'+dvOpts(it.choices,(it.choices||[])[it.answer])+(it.explanation?'<br><span class="x">풀이: '+esc(it.explanation)+'</span>':"")+(it.topic?' <span class="x">['+esc(it.topic)+']</span>':"")+'</div>';
+    });
+  });
+  return h;
+}
+function dvWrong(){
+  const w=S.wrongLog||[];
+  if(!w.length)return '<h5>오답 저장소</h5><div class="dvi x">오답 저장소가 비어 있어요. 퀴즈에서 틀리면 여기 쌓여요.</div>';
+  let h='<h5>오답 저장소 · '+w.length+'개</h5>';
+  w.forEach(function(e){h+='<div class="dvi">'+esc(e.q)+' → <b class="a">'+esc(e.a)+'</b><br><span class="x">'+esc(e.topic||"")+' · 틀린 횟수 '+(e.n||1)+(e.ok?' · 연속 정답 '+e.ok:"")+'</span></div>';});
+  return h;
+}
+function dvBody(){
+  if(dvMenu==="eng")return dvEng(dvSub);
+  if(dvMenu==="math"){
+    if(dvSub==="diag")return dvDiag();
+    if(dvSub==="all"){let h="";for(let l=1;l<=7;l++)h+=dvMathLevel(l,3);return h;}
+    return dvMathLevel(+dvSub,8);
+  }
+  if(dvMenu==="week")return dvWeek();
+  if(dvMenu==="deck")return dvDecks();
+  if(dvMenu==="set")return dvSets();
+  if(dvMenu==="wrong")return dvWrong();
+  let h=dvEng("all");
+  for(let l=1;l<=7;l++)h+=dvMathLevel(l,2);
+  h+=dvDiag();h+=dvWeek();h+=dvDecks();h+=dvSets();h+=dvWrong();
+  return h;
+}
+function renderDevView(){
+  const m=$("devViewMenu");if(!m)return;
+  m.innerHTML="";
+  DV_MENUS.forEach(function(p){
+    const b=document.createElement("button");
+    b.className="seg"+(dvMenu===p[0]?" on":"");b.textContent=p[1];b.style.flex="1 1 30%";
+    b.onclick=function(){dvMenu=(dvMenu===p[0]?"":p[0]);dvSub="all";renderDevView();};
+    m.appendChild(b);
+  });
+  const sub=$("devViewSub");sub.innerHTML="";
+  let subs=null;
+  if(dvMenu==="math")subs=[["all","전체"],["1","1"],["2","2"],["3","3"],["4","4"],["5","5"],["6","6"],["7","7"],["diag","진단"]];
+  if(dvMenu==="eng")subs=[["all","전체"],["base","기본"],["imp","불러온 단어"]];
+  sub.style.display=subs?"":"none";
+  if(subs)subs.forEach(function(p){
+    const b=document.createElement("button");
+    b.className="seg"+(dvSub===p[0]?" on":"");b.textContent=p[1];b.style.flex="1 1 "+(dvMenu==="math"?"16%":"30%");
+    b.onclick=function(){dvSub=p[0];renderDevView();};
+    sub.appendChild(b);
+  });
+  const out=$("devViewOut");
+  if(!dvMenu){out.innerHTML="";return;}
+  const gen=dvMenu==="math"||dvMenu==="week"||dvMenu==="all";
+  out.innerHTML='<div class="dvout">'+dvBody()+'</div>'+(gen?'<button class="setbtn" style="background:var(--cream);margin-top:8px" onclick="renderDevView()">예시 새로 뽑기 (자동 출제 확인용)</button>':"");
 }
 function exportData(){
   const blob=new Blob([JSON.stringify(buildExport(),null,2)],{type:"application/json"});
