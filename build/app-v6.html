@@ -224,8 +224,10 @@ header{display:flex;justify-content:space-between;align-items:center;padding:22p
 .cbars i{width:10px;height:3px;border-radius:2px}
 .cbars i.plan{background:#B79A5E}
 .cbars i.my{background:var(--slate)}
+.cbars i.dict{background:var(--orange)}
 .cday.sel .cbars i.plan{background:var(--cream)}
 .cday.sel .cbars i.my{background:var(--paper)}
+.cday.sel .cbars i.dict{background:var(--cream)}
 .callgd{display:flex;flex-wrap:wrap;gap:9px 14px;margin-top:12px;padding-top:11px;border-top:1.5px solid #EFEDF5;
   font-size:11.5px;font-weight:700;color:var(--slate)}
 .callgd span{display:flex;align-items:center;gap:5px}
@@ -234,6 +236,11 @@ header{display:flex;justify-content:space-between;align-items:center;padding:22p
 .cd.plan{background:#B79A5E;border-radius:2px;height:4px;width:11px}
 .cd.my{background:var(--slate);border-radius:2px;height:4px;width:11px}
 .cd.exam{background:var(--cream);border:1.5px solid #E4D9BC}
+.cd.dict{background:var(--orange);border-radius:2px;height:4px;width:11px}
+.dcw{padding:11px 0;border-top:1.5px solid #EFEDF5;font-size:14.5px;line-height:1.65}
+.dcw .dcx{font-size:12px;font-weight:600;color:var(--mist)}
+.vsbar{height:8px;border-radius:99px;background:#EFEDF5;margin:10px 0 7px;overflow:hidden}
+.vsbar i{display:block;height:100%;background:var(--orange);border-radius:99px}
 .cdetail{background:var(--paper);color:var(--ink);border-radius:26px;padding:16px 18px;margin-bottom:12px}
 .cdetail .dt{font-size:15.5px;font-weight:800}
 .cdetail .ds{font-size:12.5px;font-weight:600;color:var(--mist);margin-top:4px}
@@ -493,6 +500,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
   <!-- ============ 단어장 ============ -->
   <section class="screen" id="scr-vocab">
     <header><div class="logo">단어장</div><div class="pill line" id="vocabTotal"></div></header>
+    <div id="vocabStage"></div>
     <div class="chiprow" id="vocabChips"></div>
     <div id="vocabList"></div>
   </section>
@@ -655,6 +663,26 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
     </div>
   </section>
 
+  <!-- ============ 받아쓰기 시험 (승급·복습) ============ -->
+  <section class="screen" id="scr-dict">
+    <div class="topbar">
+      <button class="back" onclick="dictQuit()">←</button>
+      <div class="ptrack"><div class="pfill" id="dcFill"></div></div>
+      <div class="pcount" id="dcCount"></div>
+    </div>
+    <div id="dcQ">
+      <div class="qword">
+        <div class="dir" id="dcDir"></div>
+        <div class="word" id="dcWord"></div>
+        <button class="spk" id="dcSpk" style="position:absolute;top:-22px;left:16px" onclick="dictSpeak()">🔊</button>
+      </div>
+      <input class="spinput" id="dcInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어로 쓰기" onkeydown="if(event.key==='Enter')dictNext()">
+      <p class="tip" style="text-align:center">진짜 시험처럼 — 정답은 다 풀고 나서 한꺼번에 알려 줄게</p>
+      <div class="btnrow"><button class="bigbtn o" id="dcGo" onclick="dictNext()">다음 →</button></div>
+    </div>
+    <div id="dcResult" style="display:none"></div>
+  </section>
+
   <!-- ============ 문장 만들기 ============ -->
   <section class="screen" id="scr-make">
     <div class="topbar">
@@ -730,6 +758,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
         <span><i class="cd done"></i>공부한 날</span>
         <span><i class="cd plan"></i>학습 계획</span>
         <span><i class="cd my"></i>내 일정</span>
+        <span><i class="cd dict"></i>받아쓰기 복습</span>
         <span><i class="cd exam"></i>시험기간</span>
       </div>
     </div>
@@ -921,7 +950,808 @@ const WORDS = [
 ["bird","새","A bird can fly.","새는 날 수 있어."],
 ["rabbit","토끼","A rabbit has long ears.","토끼는 귀가 길어."],
 ["bear","곰","A big bear.","큰 곰."],
-["tiger","호랑이","A tiger is strong.","호랑이는 강해."]
+["tiger","호랑이","A tiger is strong.","호랑이는 강해."],
+/* ---- 신규 800단어 (2026-08-08 단어장 대확장, 난이도 순) ---- */
+["lion","사자","A lion is strong.","사자는 힘이 세."],
+["elephant","코끼리","An elephant is big.","코끼리는 커."],
+["monkey","원숭이","A monkey likes bananas.","원숭이는 바나나를 좋아해."],
+["horse","말","A horse runs fast.","말은 빨리 달려."],
+["cow","소","A cow gives milk.","소는 우유를 줘."],
+["pig","돼지","The pig is pink.","그 돼지는 분홍색이야."],
+["duck","오리","A duck can swim.","오리는 수영할 수 있어."],
+["chicken","닭","The chicken has eggs.","그 닭은 알이 있어."],
+["sheep","양","Sheep are white.","양은 하얘."],
+["mouse","쥐","A mouse is small.","쥐는 작아."],
+["snake","뱀","A snake is long.","뱀은 길어."],
+["frog","개구리","A frog can jump.","개구리는 뛸 수 있어."],
+["ant","개미","An ant is tiny.","개미는 아주 작아."],
+["bee","벌","A bee makes honey.","벌은 꿀을 만들어."],
+["butterfly","나비","A butterfly can fly.","나비는 날 수 있어."],
+["spider","거미","A spider has eight legs.","거미는 다리가 여덟 개야."],
+["whale","고래","A whale is huge.","고래는 엄청 커."],
+["shark","상어","A shark lives in the sea.","상어는 바다에 살아."],
+["wolf","늑대","A wolf is like a dog.","늑대는 개랑 비슷해."],
+["fox","여우","A fox is clever.","여우는 영리해."],
+["arm","팔","My arm is long.","내 팔은 길어."],
+["leg","다리","My leg hurts.","다리가 아파."],
+["ear","귀","I have two ears.","나는 귀가 두 개야."],
+["nose","코","My nose is small.","내 코는 작아."],
+["mouth","입","Open your mouth.","입을 벌려 봐."],
+["hair","머리카락","Her hair is long.","그녀의 머리카락은 길어."],
+["tooth","이, 치아","Brush your teeth.","이를 닦아."],
+["finger","손가락","I have ten fingers.","나는 손가락이 열 개야."],
+["neck","목","A giraffe has a long neck.","기린은 목이 길어."],
+["shoulder","어깨","My shoulder is strong.","내 어깨는 튼튼해."],
+["knee","무릎","Bend your knees.","무릎을 굽혀 봐."],
+["skin","피부","My skin is soft.","내 피부는 부드러워."],
+["baby","아기","The baby is sleeping.","아기가 자고 있어."],
+["boy","소년","The boy plays soccer.","그 소년은 축구를 해."],
+["girl","소녀","The girl sings well.","그 소녀는 노래를 잘해."],
+["man","남자","That man is tall.","저 남자는 키가 커."],
+["woman","여자","The woman is a doctor.","그 여자는 의사야."],
+["child","아이","The child is happy.","그 아이는 행복해."],
+["people","사람들","Many people like music.","많은 사람들이 음악을 좋아해."],
+["parents","부모님","I love my parents.","나는 부모님을 사랑해."],
+["grandmother","할머니","My grandmother is kind.","우리 할머니는 다정해."],
+["grandfather","할아버지","My grandfather is old.","우리 할아버지는 연세가 많아."],
+["uncle","삼촌","My uncle is funny.","우리 삼촌은 재밌어."],
+["aunt","이모, 고모","My aunt lives in Seoul.","우리 이모는 서울에 살아."],
+["cousin","사촌","My cousin is my friend.","내 사촌은 내 친구야."],
+["son","아들","He is my son.","그는 내 아들이야."],
+["daughter","딸","She is their daughter.","그녀는 그들의 딸이야."],
+["meat","고기","I like meat.","나는 고기를 좋아해."],
+["soup","수프, 국","The soup is hot.","수프가 뜨거워."],
+["salt","소금","Pass me the salt.","소금 좀 건네줘."],
+["sugar","설탕","Sugar is sweet.","설탕은 달아."],
+["butter","버터","Put butter on the bread.","빵에 버터를 발라."],
+["cheese","치즈","I like cheese pizza.","나는 치즈 피자를 좋아해."],
+["juice","주스","Orange juice is good.","오렌지 주스는 맛있어."],
+["tea","차","Mom drinks tea.","엄마는 차를 마셔."],
+["coffee","커피","Dad likes coffee.","아빠는 커피를 좋아해."],
+["pizza","피자","Let's eat pizza!","피자 먹자!"],
+["salad","샐러드","The salad is fresh.","샐러드가 신선해."],
+["candy","사탕","Candy is sweet.","사탕은 달아."],
+["chocolate","초콜릿","I love chocolate.","나는 초콜릿을 엄청 좋아해."],
+["cookie","쿠키","Mom made cookies.","엄마가 쿠키를 만들었어."],
+["banana","바나나","A banana is yellow.","바나나는 노란색이야."],
+["orange","오렌지","This orange is sweet.","이 오렌지는 달아."],
+["grape","포도","Grapes are purple.","포도는 보라색이야."],
+["lemon","레몬","A lemon is sour.","레몬은 셔."],
+["strawberry","딸기","I like strawberry milk.","나는 딸기 우유를 좋아해."],
+["watermelon","수박","Watermelon is a summer fruit.","수박은 여름 과일이야."],
+["potato","감자","I eat potato chips.","나는 감자칩을 먹어."],
+["tomato","토마토","A tomato is red.","토마토는 빨개."],
+["onion","양파","Onions make me cry.","양파는 눈물이 나게 해."],
+["carrot","당근","Rabbits like carrots.","토끼는 당근을 좋아해."],
+["corn","옥수수","Corn is yellow.","옥수수는 노란색이야."],
+["honey","꿀","Honey is very sweet.","꿀은 아주 달아."],
+["jam","잼","I put jam on bread.","나는 빵에 잼을 발라."],
+["noodle","국수, 면","I like noodles.","나는 국수를 좋아해."],
+["pencil","연필","This is my pencil.","이건 내 연필이야."],
+["pen","펜","Write with a pen.","펜으로 써."],
+["eraser","지우개","May I use your eraser?","지우개 좀 써도 돼?"],
+["paper","종이","Fold the paper.","종이를 접어."],
+["bag","가방","My bag is heavy.","내 가방은 무거워."],
+["class","수업, 반","Class starts at nine.","수업은 9시에 시작해."],
+["teacher","선생님","Our teacher is nice.","우리 선생님은 좋아."],
+["student","학생","I am a student.","나는 학생이야."],
+["homework","숙제","I did my homework.","나는 숙제를 했어."],
+["test","시험","The test is easy.","시험이 쉬워."],
+["lesson","수업, 과","This lesson is fun.","이 수업은 재밌어."],
+["question","질문","I have a question.","질문이 있어."],
+["answer","대답, 답","I know the answer.","나 답을 알아."],
+["word","단어","Learn new words.","새 단어를 배워."],
+["sentence","문장","Make a sentence.","문장을 만들어 봐."],
+["story","이야기","Tell me a story.","이야기 하나 해 줘."],
+["picture","그림, 사진","Look at this picture.","이 그림을 봐."],
+["color","색깔","What color is it?","그건 무슨 색이야?"],
+["page","페이지, 쪽","Open to page ten.","10쪽을 펴."],
+["library","도서관","I read at the library.","나는 도서관에서 책을 읽어."],
+["park","공원","Let's go to the park.","공원에 가자."],
+["store","가게","The store is open.","가게가 열려 있어."],
+["market","시장","Mom goes to the market.","엄마는 시장에 가."],
+["hospital","병원","He is in the hospital.","그는 병원에 있어."],
+["church","교회","The church is old.","그 교회는 오래됐어."],
+["bank","은행","The bank is closed.","은행이 닫혔어."],
+["station","역","Where is the station?","역이 어디야?"],
+["airport","공항","We are at the airport.","우리는 공항에 있어."],
+["bridge","다리(건너는)","Cross the bridge.","다리를 건너."],
+["road","길, 도로","The road is long.","그 길은 길어."],
+["street","거리","I live on this street.","나는 이 거리에 살아."],
+["city","도시","Seoul is a big city.","서울은 큰 도시야."],
+["town","마을, 동네","Our town is quiet.","우리 동네는 조용해."],
+["village","마을(시골)","The village is small.","그 마을은 작아."],
+["country","나라, 시골","Korea is my country.","한국은 내 나라야."],
+["world","세계","The world is wide.","세계는 넓어."],
+["beach","해변","We play at the beach.","우리는 해변에서 놀아."],
+["mountain","산","The mountain is high.","그 산은 높아."],
+["river","강","The river is clean.","그 강은 깨끗해."],
+["lake","호수","The lake is deep.","그 호수는 깊어."],
+["sea","바다","I swim in the sea.","나는 바다에서 수영해."],
+["island","섬","Jeju is an island.","제주는 섬이야."],
+["farm","농장","Cows live on a farm.","소는 농장에 살아."],
+["garden","정원","Flowers grow in the garden.","정원에 꽃이 자라."],
+["zoo","동물원","We saw lions at the zoo.","우리는 동물원에서 사자를 봤어."],
+["museum","박물관","The museum is free today.","박물관이 오늘 무료야."],
+["kitchen","부엌","Mom is in the kitchen.","엄마는 부엌에 있어."],
+["bedroom","침실","My bedroom is small.","내 침실은 작아."],
+["bathroom","욕실, 화장실","Where is the bathroom?","화장실이 어디야?"],
+["table","탁자, 식탁","The food is on the table.","음식이 식탁 위에 있어."],
+["bed","침대","I sleep in my bed.","나는 침대에서 자."],
+["sofa","소파","Sit on the sofa.","소파에 앉아."],
+["lamp","램프, 등","Turn on the lamp.","램프를 켜."],
+["clock","시계","The clock is slow.","그 시계는 느려."],
+["watch","손목시계","This watch is new.","이 손목시계는 새거야."],
+["mirror","거울","Look in the mirror.","거울을 봐."],
+["box","상자","What is in the box?","상자 안에 뭐가 있어?"],
+["cup","컵","A cup of water, please.","물 한 컵 주세요."],
+["dish","접시, 요리","Wash the dishes.","설거지를 해."],
+["bottle","병","The bottle is empty.","그 병은 비어 있어."],
+["knife","칼","Be careful with the knife.","칼 조심해."],
+["spoon","숟가락","Eat soup with a spoon.","숟가락으로 수프를 먹어."],
+["fork","포크","Use a fork.","포크를 사용해."],
+["key","열쇠","I lost my key.","열쇠를 잃어버렸어."],
+["ring","반지","The ring is gold.","그 반지는 금이야."],
+["umbrella","우산","Take your umbrella.","우산을 챙겨."],
+["hat","모자","Wear a hat.","모자를 써."],
+["cap","야구모자","I like this cap.","나는 이 모자가 좋아."],
+["coat","코트, 외투","Put on your coat.","외투를 입어."],
+["shirt","셔츠","The shirt is white.","그 셔츠는 하얘."],
+["skirt","치마","She wears a skirt.","그녀는 치마를 입어."],
+["dress","드레스, 원피스","The dress is pretty.","그 원피스는 예뻐."],
+["shoe","신발","My shoes are new.","내 신발은 새거야."],
+["sock","양말","I need clean socks.","깨끗한 양말이 필요해."],
+["pocket","주머니","My pocket is empty.","내 주머니는 비었어."],
+["ball","공","Throw the ball.","공을 던져."],
+["toy","장난감","Kids like toys.","아이들은 장난감을 좋아해."],
+["balloon","풍선","The balloon is red.","그 풍선은 빨개."],
+["camera","카메라","Smile at the camera.","카메라 보고 웃어."],
+["computer","컴퓨터","I use a computer.","나는 컴퓨터를 써."],
+["radio","라디오","Turn on the radio.","라디오를 켜."],
+["letter","편지","I wrote a letter.","나는 편지를 썼어."],
+["card","카드","This is a birthday card.","이건 생일 카드야."],
+["gift","선물","This gift is for you.","이 선물은 네 거야."],
+["map","지도","Look at the map.","지도를 봐."],
+["flag","깃발","The flag is blue.","그 깃발은 파래."],
+["boat","보트, 작은 배","The boat is on the lake.","보트가 호수 위에 있어."],
+["ship","배(큰)","The ship is huge.","그 배는 엄청 커."],
+["train","기차","The train is fast.","기차는 빨라."],
+["bus","버스","I go by bus.","나는 버스로 가."],
+["airplane","비행기","The airplane flies high.","비행기는 높이 날아."],
+["bike","자전거","I ride my bike.","나는 자전거를 타."],
+["star","별","Stars shine at night.","별은 밤에 빛나."],
+["cloud","구름","The cloud is white.","구름이 하얘."],
+["rainbow","무지개","A rainbow has seven colors.","무지개는 일곱 색이야."],
+["storm","폭풍","The storm is coming.","폭풍이 오고 있어."],
+["spring","봄","Flowers bloom in spring.","봄에는 꽃이 펴."],
+["summer","여름","Summer is hot.","여름은 더워."],
+["fall","가을","Leaves fall in fall.","가을엔 잎이 떨어져."],
+["winter","겨울","Winter is cold.","겨울은 추워."],
+["season","계절","Which season do you like?","넌 어느 계절이 좋아?"],
+["month","달, 월","May is my favorite month.","5월은 내가 제일 좋아하는 달이야."],
+["hour","시간(단위)","One hour is sixty minutes.","1시간은 60분이야."],
+["minute","분","Wait a minute.","잠깐만 기다려."],
+["weekend","주말","I rest on the weekend.","나는 주말에 쉬어."],
+["holiday","휴일, 명절","Today is a holiday.","오늘은 휴일이야."],
+["vacation","방학, 휴가","Summer vacation is fun.","여름 방학은 재밌어."],
+["birthday","생일","Happy birthday!","생일 축하해!"],
+["stone","돌","Don't throw stones.","돌을 던지지 마."],
+["rock","바위","The rock is big.","그 바위는 커."],
+["sand","모래","We play in the sand.","우리는 모래에서 놀아."],
+["leaf","잎","The leaf is green.","그 잎은 초록색이야."],
+["grass","풀, 잔디","The grass is soft.","잔디가 부드러워."],
+["wood","나무(재료)","The chair is made of wood.","그 의자는 나무로 만들었어."],
+["fire","불","Fire is hot.","불은 뜨거워."],
+["air","공기","Fresh air is good.","신선한 공기는 좋아."],
+["ice","얼음","Ice is cold.","얼음은 차가워."],
+["ask","묻다, 부탁하다","Ask the teacher.","선생님께 물어봐."],
+["tell","말해 주다","Tell me your name.","네 이름을 말해 줘."],
+["say","말하다","Say hello.","인사해 봐."],
+["speak","말하다(언어)","I speak Korean.","나는 한국어를 해."],
+["talk","이야기하다","Let's talk later.","나중에 이야기하자."],
+["listen","듣다(귀 기울여)","Listen to me.","내 말을 들어 봐."],
+["look","보다, 쳐다보다","Look at the sky.","하늘을 봐."],
+["find","찾다","I can't find my key.","열쇠를 못 찾겠어."],
+["get","얻다, 받다","I got a present.","나는 선물을 받았어."],
+["give","주다","Give me the ball.","공을 나한테 줘."],
+["take","가져가다, 잡다","Take this bag.","이 가방을 가져가."],
+["put","놓다, 두다","Put it on the desk.","그걸 책상 위에 놔."],
+["buy","사다","I want to buy shoes.","나는 신발을 사고 싶어."],
+["sell","팔다","They sell fruit.","그들은 과일을 팔아."],
+["pay","지불하다, 내다","I will pay for lunch.","점심은 내가 낼게."],
+["help","돕다","Can you help me?","나 좀 도와줄래?"],
+["meet","만나다","Nice to meet you.","만나서 반가워."],
+["call","부르다, 전화하다","Call me tonight.","오늘 밤에 전화해."],
+["wait","기다리다","Wait for me!","나 기다려 줘!"],
+["start","시작하다","The game starts now.","게임이 지금 시작해."],
+["stop","멈추다","Stop the music.","음악을 멈춰."],
+["finish","끝내다","Finish your homework.","숙제를 끝내."],
+["begin","시작되다","Class begins at nine.","수업은 9시에 시작해."],
+["work","일하다","Dad works hard.","아빠는 열심히 일해."],
+["rest","쉬다","Rest for a while.","잠깐 쉬어."],
+["wash","씻다","Wash your hands.","손을 씻어."],
+["clean","청소하다","Clean your room.","네 방을 청소해."],
+["cook","요리하다","Mom cooks well.","엄마는 요리를 잘해."],
+["drink","마시다","Drink some water.","물을 좀 마셔."],
+["drive","운전하다","Dad drives a car.","아빠는 차를 운전해."],
+["ride","타다","I ride a bike.","나는 자전거를 타."],
+["fly","날다","Birds fly high.","새는 높이 날아."],
+["swim","수영하다","Fish swim well.","물고기는 수영을 잘해."],
+["sing","노래하다","She sings a song.","그녀는 노래를 불러."],
+["dance","춤추다","Let's dance together.","같이 춤추자."],
+["draw","그리다","I draw a cat.","나는 고양이를 그려."],
+["cut","자르다","Cut the paper.","종이를 잘라."],
+["catch","잡다","Catch the ball!","공을 잡아!"],
+["throw","던지다","Throw it to me.","나한테 던져."],
+["kick","차다","Kick the ball.","공을 차."],
+["hit","치다","He hit the ball.","그는 공을 쳤어."],
+["push","밀다","Push the door.","문을 밀어."],
+["pull","당기다","Pull the rope.","줄을 당겨."],
+["hold","잡고 있다, 들다","Hold my hand.","내 손을 잡아."],
+["carry","나르다, 들고 가다","I carry my bag.","나는 가방을 들고 가."],
+["bring","가져오다","Bring your book.","네 책을 가져와."],
+["send","보내다","Send me a message.","나한테 메시지를 보내."],
+["show","보여 주다","Show me your picture.","네 그림을 보여 줘."],
+["teach","가르치다","She teaches English.","그녀는 영어를 가르쳐."],
+["visit","방문하다","I visit my grandmother.","나는 할머니를 찾아가."],
+["live","살다","I live in Korea.","나는 한국에 살아."],
+["grow","자라다, 기르다","Trees grow slowly.","나무는 천천히 자라."],
+["wear","입다, 쓰다","Wear your coat.","외투를 입어."],
+["smile","웃다, 미소 짓다","Smile at me.","나를 보고 웃어 줘."],
+["laugh","웃다(소리 내어)","We laughed a lot.","우리는 많이 웃었어."],
+["cry","울다","Don't cry.","울지 마."],
+["remember","기억하다","I remember your name.","나는 네 이름을 기억해."],
+["forget","잊다","Don't forget me.","나를 잊지 마."],
+["use","사용하다","Use this pen.","이 펜을 써."],
+["try","시도하다, 해 보다","Try again!","다시 해 봐!"],
+["win","이기다","We won the game.","우리가 경기에서 이겼어."],
+["lose","지다, 잃다","We lost the game.","우리는 경기에서 졌어."],
+["hope","바라다, 희망하다","I hope you win.","네가 이기길 바라."],
+["wish","소원을 빌다","Make a wish.","소원을 빌어 봐."],
+["enjoy","즐기다","Enjoy your meal.","맛있게 먹어."],
+["feel","느끼다","I feel good.","기분이 좋아."],
+["touch","만지다","Don't touch it.","그거 만지지 마."],
+["move","움직이다, 이사하다","Don't move.","움직이지 마."],
+["tall","키가 큰","He is very tall.","그는 키가 아주 커."],
+["short","짧은, 키가 작은","Her hair is short.","그녀의 머리는 짧아."],
+["long","긴","The snake is long.","그 뱀은 길어."],
+["high","높은","The wall is high.","그 벽은 높아."],
+["low","낮은","The chair is low.","그 의자는 낮아."],
+["young","어린, 젊은","My sister is young.","내 동생은 어려."],
+["pretty","예쁜","The flower is pretty.","그 꽃은 예뻐."],
+["cute","귀여운","The puppy is cute.","그 강아지는 귀여워."],
+["kind","친절한","She is kind to me.","그녀는 나에게 친절해."],
+["nice","좋은, 멋진","Have a nice day.","좋은 하루 보내."],
+["smart","똑똑한","You are smart.","너는 똑똑해."],
+["funny","웃긴, 재미있는","The movie is funny.","그 영화는 웃겨."],
+["angry","화가 난","Don't be angry.","화내지 마."],
+["tired","피곤한","I am tired today.","나 오늘 피곤해."],
+["hungry","배고픈","I'm so hungry.","나 너무 배고파."],
+["thirsty","목마른","I'm thirsty.","목말라."],
+["sick","아픈","He is sick today.","그는 오늘 아파."],
+["great","훌륭한, 아주 좋은","That's a great idea.","그거 아주 좋은 생각이야."],
+["easy","쉬운","This question is easy.","이 문제는 쉬워."],
+["difficult","어려운","Math is difficult.","수학은 어려워."],
+["simple","간단한","The rule is simple.","규칙은 간단해."],
+["dirty","더러운","My shoes are dirty.","내 신발이 더러워."],
+["quiet","조용한","Be quiet, please.","조용히 해 줘."],
+["loud","시끄러운","The music is loud.","음악이 시끄러워."],
+["bright","밝은","The room is bright.","방이 밝아."],
+["dark","어두운","It's dark outside.","밖이 어두워."],
+["heavy","무거운","The box is heavy.","그 상자는 무거워."],
+["right","옳은, 오른쪽","You are right.","네 말이 맞아."],
+["wrong","틀린, 잘못된","The answer is wrong.","그 답은 틀렸어."],
+["same","같은","We have the same bag.","우리는 같은 가방을 가졌어."],
+["different","다른","We are different.","우리는 서로 달라."],
+["busy","바쁜","Mom is busy now.","엄마는 지금 바빠."],
+["free","한가한, 무료의","Are you free today?","너 오늘 시간 있어?"],
+["full","가득 찬, 배부른","I'm full.","나 배불러."],
+["empty","비어 있는","The cup is empty.","컵이 비어 있어."],
+["rich","부유한","He is rich.","그는 부자야."],
+["poor","가난한, 불쌍한","The poor cat is wet.","불쌍한 고양이가 젖었어."],
+["safe","안전한","This place is safe.","이곳은 안전해."],
+["strong","힘센, 강한","He is strong.","그는 힘이 세."],
+["weak","약한","I feel weak today.","오늘 기운이 없어."],
+["warm","따뜻한","The soup is warm.","수프가 따뜻해."],
+["cool","시원한, 멋진","The wind is cool.","바람이 시원해."],
+["wet","젖은","My hair is wet.","내 머리가 젖었어."],
+["dry","마른, 건조한","The towel is dry.","수건이 말라 있어."],
+["sweet","달콤한","The cake is sweet.","케이크가 달아."],
+["fresh","신선한","The fruit is fresh.","과일이 신선해."],
+["soft","부드러운","The pillow is soft.","베개가 부드러워."],
+["deep","깊은","The sea is deep.","바다는 깊어."],
+["wide","넓은","The road is wide.","길이 넓어."],
+["thin","얇은, 마른","The book is thin.","그 책은 얇아."],
+["breakfast","아침 식사","I eat breakfast at seven.","나는 7시에 아침을 먹어."],
+["lunch","점심 식사","Lunch time!","점심시간이야!"],
+["dinner","저녁 식사","Dinner is ready.","저녁 준비됐어."],
+["snack","간식","I want a snack.","간식 먹고 싶어."],
+["weather","날씨","The weather is nice.","날씨가 좋아."],
+["news","뉴스, 소식","I have good news.","좋은 소식이 있어."],
+["job","직업, 일","She has a new job.","그녀는 새 직업을 가졌어."],
+["doctor","의사","The doctor is kind.","그 의사는 친절해."],
+["nurse","간호사","The nurse helps people.","간호사는 사람들을 도와."],
+["police","경찰","Call the police.","경찰을 불러."],
+["farmer","농부","The farmer grows rice.","농부는 벼를 길러."],
+["singer","가수","The singer is popular.","그 가수는 인기가 많아."],
+["dancer","무용수, 댄서","The dancer moves fast.","그 댄서는 빠르게 움직여."],
+["artist","예술가, 화가","The artist draws well.","그 화가는 그림을 잘 그려."],
+["writer","작가","The writer wrote a book.","그 작가는 책을 썼어."],
+["driver","운전사","The bus driver is nice.","그 버스 기사님은 친절해."],
+["chef","요리사","The chef cooks pasta.","그 요리사는 파스타를 만들어."],
+["scientist","과학자","The scientist studies stars.","그 과학자는 별을 연구해."],
+["player","선수","He is a soccer player.","그는 축구 선수야."],
+["team","팀","Our team won.","우리 팀이 이겼어."],
+["club","동아리, 클럽","I joined the art club.","나는 미술 동아리에 들었어."],
+["sport","스포츠, 운동","What sport do you like?","넌 무슨 운동을 좋아해?"],
+["soccer","축구","Let's play soccer.","축구 하자."],
+["baseball","야구","Baseball is fun.","야구는 재밌어."],
+["basketball","농구","He plays basketball.","그는 농구를 해."],
+["tennis","테니스","She plays tennis well.","그녀는 테니스를 잘 쳐."],
+["race","경주","I won the race.","내가 경주에서 이겼어."],
+["prize","상, 상품","I got a prize.","나 상 받았어."],
+["goal","골, 목표","He scored a goal.","그가 골을 넣었어."],
+["score","점수","What's the score?","점수가 어떻게 돼?"],
+["hobby","취미","My hobby is drawing.","내 취미는 그림 그리기야."],
+["trip","여행","The trip was fun.","여행이 재밌었어."],
+["plan","계획","What's your plan?","네 계획이 뭐야?"],
+["party","파티","Come to my party.","내 파티에 와."],
+["festival","축제","The festival is in May.","축제는 5월에 있어."],
+["concert","콘서트, 공연","The concert was great.","콘서트가 정말 좋았어."],
+["ticket","표, 티켓","I have two tickets.","나 표 두 장 있어."],
+["seat","자리, 좌석","This is my seat.","여기 내 자리야."],
+["floor","바닥, 층","The floor is clean.","바닥이 깨끗해."],
+["wall","벽","The wall is white.","벽이 하얘."],
+["roof","지붕","The roof is red.","지붕이 빨개."],
+["stairs","계단","Go up the stairs.","계단으로 올라가."],
+["elevator","엘리베이터","Take the elevator.","엘리베이터를 타."],
+["corner","모퉁이, 구석","Turn at the corner.","모퉁이에서 돌아."],
+["center","중앙, 센터","Stand in the center.","가운데에 서."],
+["middle","가운데","Sit in the middle.","가운데에 앉아."],
+["top","꼭대기, 맨 위","We reached the top.","우리는 꼭대기에 도착했어."],
+["bottom","바닥, 맨 아래","Look at the bottom.","맨 아래를 봐."],
+["side","옆, 쪽","Stand by my side.","내 옆에 서."],
+["front","앞","Wait in front of the school.","학교 앞에서 기다려."],
+["end","끝","This is the end.","이게 끝이야."],
+["part","부분","This part is easy.","이 부분은 쉬워."],
+["piece","조각","One piece of cake, please.","케이크 한 조각 주세요."],
+["half","절반","Give me half.","반만 줘."],
+["group","그룹, 무리","Make groups of four.","네 명씩 모여."],
+["thing","것, 물건","What is that thing?","저건 뭐야?"],
+["way","길, 방법","This is the way.","이게 그 길이야."],
+["place","장소","This place is nice.","이곳은 좋아."],
+["idea","생각, 아이디어","Good idea!","좋은 생각이야!"],
+["fact","사실","That's a fact.","그건 사실이야."],
+["always","항상","I always get up early.","나는 항상 일찍 일어나."],
+["usually","보통","I usually walk to school.","나는 보통 걸어서 학교에 가."],
+["often","자주","We often play games.","우리는 자주 게임을 해."],
+["sometimes","가끔","Sometimes I'm lazy.","가끔 나는 게을러."],
+["never","절대 ~않다","I never lie.","나는 절대 거짓말 안 해."],
+["again","다시","Try it again.","다시 해 봐."],
+["together","함께","Let's study together.","같이 공부하자."],
+["alone","혼자","I ate alone.","나는 혼자 먹었어."],
+["early","일찍","Wake up early.","일찍 일어나."],
+["late","늦게, 늦은","Don't be late.","늦지 마."],
+["soon","곧","See you soon.","곧 보자."],
+["now","지금","Do it now.","지금 해."],
+["then","그때, 그러면","See you then.","그때 보자."],
+["here","여기","Come here.","여기로 와."],
+["there","거기","Put it there.","거기에 놔."],
+["very","매우, 아주","It's very cold.","아주 추워."],
+["really","정말","Really? That's great!","정말? 잘됐다!"],
+["maybe","아마도","Maybe tomorrow.","아마 내일쯤."],
+["also","또한, ~도","I also like pizza.","나도 피자 좋아해."],
+["too","~도, 너무","Me too!","나도!"],
+["just","그냥, 방금","I just woke up.","나 방금 일어났어."],
+["only","오직, ~만","Only one left.","딱 하나 남았어."],
+["well","잘","She sings well.","그녀는 노래를 잘해."],
+["about","~에 대해, 약","Tell me about it.","그것에 대해 말해 줘."],
+["because","왜냐하면, ~때문에","I'm happy because it's Friday.","금요일이라서 나는 신나."],
+["before","~ 전에","Wash hands before meals.","밥 먹기 전에 손을 씻어."],
+["after","~ 후에","Let's play after school.","방과 후에 놀자."],
+["during","~ 동안","Don't talk during class.","수업 중에 떠들지 마."],
+["between","~ 사이에","Sit between us.","우리 사이에 앉아."],
+["around","~ 주위에","Look around.","주위를 둘러봐."],
+["arrive","도착하다","The train arrived.","기차가 도착했어."],
+["leave","떠나다, 남기다","Don't leave me.","나를 떠나지 마."],
+["stay","머무르다","Stay home today.","오늘은 집에 있어."],
+["return","돌아오다, 돌려주다","Return the book.","책을 돌려줘."],
+["join","가입하다, 함께하다","Join our team.","우리 팀에 들어와."],
+["invite","초대하다","I invited my friends.","나는 친구들을 초대했어."],
+["borrow","빌리다","Can I borrow a pen?","펜 좀 빌려도 돼?"],
+["lend","빌려주다","Lend me your umbrella.","우산 좀 빌려줘."],
+["spend","(돈·시간을) 쓰다","I spent all my money.","나 돈을 다 썼어."],
+["save","모으다, 구하다","Save your money.","돈을 아껴."],
+["change","바꾸다, 변하다","Change your clothes.","옷을 갈아입어."],
+["choose","고르다","Choose one.","하나 골라."],
+["decide","결정하다","I decided to study.","나는 공부하기로 했어."],
+["agree","동의하다","I agree with you.","나도 네 생각에 동의해."],
+["believe","믿다","I believe you.","나는 너를 믿어."],
+["worry","걱정하다","Don't worry.","걱정하지 마."],
+["care","신경 쓰다, 돌보다","I care about you.","나는 네가 신경 쓰여."],
+["share","나누다, 공유하다","Share the cookies.","쿠키를 나눠 먹어."],
+["check","확인하다","Check your answer.","네 답을 확인해."],
+["practice","연습하다","Practice every day.","매일 연습해."],
+["pass","통과하다, 건네주다","I passed the test!","나 시험에 통과했어!"],
+["fail","실패하다, 떨어지다","Don't be afraid to fail.","실패를 두려워하지 마."],
+["review","복습하다","Review today's words.","오늘 단어를 복습해."],
+["prepare","준비하다","Prepare for the test.","시험을 준비해."],
+["solve","풀다, 해결하다","Solve this problem.","이 문제를 풀어 봐."],
+["collect","모으다","I collect cards.","나는 카드를 모아."],
+["build","짓다, 만들다","They built a house.","그들은 집을 지었어."],
+["break","깨다, 부수다","Don't break the cup.","컵을 깨지 마."],
+["fix","고치다","Dad fixed my bike.","아빠가 내 자전거를 고쳤어."],
+["repair","수리하다","He repairs cars.","그는 차를 수리해."],
+["create","만들어 내다","She creates games.","그녀는 게임을 만들어."],
+["design","디자인하다","I designed a poster.","나는 포스터를 디자인했어."],
+["invent","발명하다","Edison invented many things.","에디슨은 많은 것을 발명했어."],
+["discover","발견하다","They discovered an island.","그들은 섬을 발견했어."],
+["explore","탐험하다","Let's explore the cave.","동굴을 탐험하자."],
+["travel","여행하다","I want to travel the world.","나는 세계를 여행하고 싶어."],
+["climb","오르다","We climbed the mountain.","우리는 산을 올랐어."],
+["hike","하이킹하다","We hiked all day.","우리는 하루 종일 걸었어."],
+["camp","캠핑하다","We camped by the river.","우리는 강가에서 캠핑했어."],
+["hunt","사냥하다","Tigers hunt at night.","호랑이는 밤에 사냥해."],
+["feed","먹이를 주다","Feed the cat.","고양이에게 밥을 줘."],
+["raise","기르다, 들어 올리다","Raise your hand.","손을 들어."],
+["protect","보호하다","Protect the earth.","지구를 보호해."],
+["attack","공격하다","The lion attacked.","사자가 공격했어."],
+["escape","탈출하다","The bird escaped.","새가 탈출했어."],
+["hide","숨다, 숨기다","Hide behind the tree.","나무 뒤에 숨어."],
+["follow","따라가다, 따르다","Follow me.","나를 따라와."],
+["lead","이끌다","She leads the team.","그녀가 팀을 이끌어."],
+["guide","안내하다","He guided us.","그가 우리를 안내했어."],
+["introduce","소개하다","Introduce yourself.","자기소개를 해 봐."],
+["explain","설명하다","Explain the rule.","규칙을 설명해 줘."],
+["describe","묘사하다","Describe the picture.","그 그림을 묘사해 봐."],
+["express","표현하다","Express your feelings.","네 감정을 표현해 봐."],
+["communicate","소통하다","We communicate by phone.","우리는 전화로 소통해."],
+["reply","답장하다","Reply to my message.","내 메시지에 답장해."],
+["famous","유명한","The singer is famous.","그 가수는 유명해."],
+["popular","인기 있는","This game is popular.","이 게임은 인기가 많아."],
+["special","특별한","Today is a special day.","오늘은 특별한 날이야."],
+["important","중요한","Health is important.","건강은 중요해."],
+["useful","유용한","This app is useful.","이 앱은 유용해."],
+["helpful","도움이 되는","Your advice was helpful.","네 조언이 도움이 됐어."],
+["careful","조심하는","Be careful!","조심해!"],
+["dangerous","위험한","The road is dangerous.","그 길은 위험해."],
+["exciting","신나는","The game was exciting.","그 경기는 신났어."],
+["interesting","흥미로운","The book is interesting.","그 책은 흥미로워."],
+["boring","지루한","The movie was boring.","그 영화는 지루했어."],
+["amazing","놀라운","The view is amazing.","경치가 끝내줘."],
+["wonderful","멋진, 훌륭한","We had a wonderful time.","우리는 멋진 시간을 보냈어."],
+["terrible","끔찍한","The weather is terrible.","날씨가 최악이야."],
+["strange","이상한","I heard a strange sound.","이상한 소리를 들었어."],
+["curious","궁금한, 호기심 많은","Cats are curious.","고양이는 호기심이 많아."],
+["serious","심각한, 진지한","Are you serious?","너 진심이야?"],
+["nervous","긴장한","I'm nervous about the test.","시험 때문에 긴장돼."],
+["proud","자랑스러운","I'm proud of you.","나는 네가 자랑스러워."],
+["brave","용감한","The firefighter is brave.","소방관은 용감해."],
+["honest","정직한","Be honest with me.","나한테 솔직하게 말해."],
+["polite","예의 바른","He is polite to everyone.","그는 모두에게 예의 발라."],
+["rude","무례한","Don't be rude.","무례하게 굴지 마."],
+["friendly","다정한, 친근한","My neighbor is friendly.","우리 이웃은 다정해."],
+["lonely","외로운","I felt lonely.","나는 외로웠어."],
+["glad","기쁜","I'm glad to see you.","너를 봐서 기뻐."],
+["upset","속상한","She was upset.","그녀는 속상했어."],
+["scared","무서워하는","I'm scared of spiders.","나는 거미가 무서워."],
+["surprised","놀란","I was surprised.","나는 깜짝 놀랐어."],
+["excited","신이 난","I'm excited about the trip.","여행 때문에 신나."],
+["calm","차분한","Stay calm.","침착해."],
+["lazy","게으른","My cat is lazy.","우리 고양이는 게을러."],
+["main","주된, 주요한","This is the main gate.","여기가 정문이야."],
+["real","진짜의","Is this real gold?","이거 진짜 금이야?"],
+["true","사실인, 진실한","The story is true.","그 이야기는 사실이야."],
+["false","거짓의, 틀린","True or false?","맞을까 틀릴까?"],
+["whole","전체의","I ate the whole pizza.","나는 피자를 통째로 먹었어."],
+["own","자신의","I have my own room.","나는 내 방이 있어."],
+["other","다른","Where are the other kids?","다른 애들은 어디 있어?"],
+["another","또 하나의","Give me another chance.","한 번 더 기회를 줘."],
+["several","몇몇의","I read several books.","나는 책을 몇 권 읽었어."],
+["enough","충분한","That's enough.","그거면 충분해."],
+["favorite","가장 좋아하는","What's your favorite food?","네가 제일 좋아하는 음식이 뭐야?"],
+["perfect","완벽한","Your answer is perfect.","네 답은 완벽해."],
+["ready","준비된","Are you ready?","준비됐어?"],
+["health","건강","Health comes first.","건강이 먼저야."],
+["exercise","운동","Exercise every day.","매일 운동해."],
+["habit","습관","Reading is a good habit.","독서는 좋은 습관이야."],
+["mind","마음, 정신","I changed my mind.","나 마음이 바뀌었어."],
+["body","몸","Move your body.","몸을 움직여."],
+["heart","심장, 마음","My heart beats fast.","심장이 빨리 뛰어."],
+["blood","피","Blood is red.","피는 빨개."],
+["bone","뼈","Dogs like bones.","개는 뼈다귀를 좋아해."],
+["muscle","근육","He has big muscles.","그는 근육이 커."],
+["brain","뇌","Use your brain.","머리를 써 봐."],
+["voice","목소리","Her voice is soft.","그녀의 목소리는 부드러워."],
+["sound","소리","What's that sound?","저게 무슨 소리야?"],
+["noise","소음","Don't make noise.","시끄럽게 하지 마."],
+["energy","에너지, 힘","I have no energy today.","오늘 힘이 하나도 없어."],
+["power","힘, 능력","Knowledge is power.","아는 것이 힘이야."],
+["problem","문제","No problem.","문제없어."],
+["reason","이유","Tell me the reason.","이유를 말해 줘."],
+["result","결과","The result was good.","결과가 좋았어."],
+["example","예, 예시","Give me an example.","예를 하나 들어 줘."],
+["dream","꿈","I had a strange dream.","이상한 꿈을 꿨어."],
+["future","미래","Think about your future.","네 미래를 생각해 봐."],
+["past","과거","Forget the past.","과거는 잊어."],
+["present","현재, 선물","Live in the present.","현재를 살아."],
+["memory","기억, 추억","It's a good memory.","좋은 추억이야."],
+["secret","비밀","Keep my secret.","내 비밀을 지켜 줘."],
+["truth","진실","Tell me the truth.","사실대로 말해 줘."],
+["lie","거짓말","Don't tell a lie.","거짓말하지 마."],
+["joke","농담","It was just a joke.","그냥 농담이었어."],
+["luck","운","Good luck!","행운을 빌어!"],
+["chance","기회","This is your chance.","이건 네 기회야."],
+["choice","선택","Good choice!","좋은 선택이야!"],
+["decision","결정","It was a hard decision.","어려운 결정이었어."],
+["opinion","의견","What's your opinion?","네 의견은 어때?"],
+["advice","조언, 충고","Thanks for your advice.","조언 고마워."],
+["message","메시지","I got your message.","네 메시지 받았어."],
+["information","정보","I need more information.","정보가 더 필요해."],
+["culture","문화","Korean culture is cool.","한국 문화는 멋져."],
+["history","역사","I like Korean history.","나는 한국사를 좋아해."],
+["science","과학","Science is fun.","과학은 재밌어."],
+["math","수학","Math needs practice.","수학은 연습이 필요해."],
+["art","미술, 예술","Art class is today.","오늘 미술 수업이 있어."],
+["subject","과목","What's your favorite subject?","제일 좋아하는 과목이 뭐야?"],
+["grade","학년, 성적","My grades went up.","내 성적이 올랐어."],
+["uniform","교복, 유니폼","We wear school uniforms.","우리는 교복을 입어."],
+["rule","규칙","Follow the rules.","규칙을 지켜."],
+["law","법","We must keep the law.","우리는 법을 지켜야 해."],
+["war","전쟁","War is terrible.","전쟁은 끔찍해."],
+["peace","평화","We want peace.","우리는 평화를 원해."],
+["king","왕","The king was wise.","그 왕은 현명했어."],
+["queen","여왕","The queen wore a crown.","여왕은 왕관을 썼어."],
+["prince","왕자","The prince was brave.","왕자는 용감했어."],
+["princess","공주","The princess was smart.","공주는 똑똑했어."],
+["hero","영웅","You are my hero.","너는 나의 영웅이야."],
+["ghost","유령","I'm not afraid of ghosts.","나는 유령이 안 무서워."],
+["monster","괴물","The monster was huge.","괴물은 엄청 컸어."],
+["magic","마법","The show was like magic.","그 쇼는 마법 같았어."],
+["treasure","보물","They found a treasure.","그들은 보물을 찾았어."],
+["adventure","모험","I want an adventure.","나는 모험을 하고 싶어."],
+["mystery","수수께끼, 미스터리","It's still a mystery.","그건 아직도 수수께끼야."],
+["event","행사, 사건","The school event is fun.","학교 행사는 재밌어."],
+["accident","사고","There was an accident.","사고가 있었어."],
+["danger","위험","Danger! Keep out.","위험! 들어가지 마."],
+["safety","안전","Safety comes first.","안전이 먼저야."],
+["warning","경고","This is the last warning.","이게 마지막 경고야."],
+["sign","표지판, 신호","Read the sign.","표지판을 읽어 봐."],
+["symbol","상징, 기호","The dove is a symbol of peace.","비둘기는 평화의 상징이야."],
+["meaning","의미, 뜻","What's the meaning of this word?","이 단어의 뜻이 뭐야?"],
+["language","언어","English is a language.","영어는 언어야."],
+["nature","자연","I love nature.","나는 자연을 사랑해."],
+["animal","동물","What animal do you like?","넌 무슨 동물을 좋아해?"],
+["behind","~ 뒤에","The cat is behind the sofa.","고양이가 소파 뒤에 있어."],
+["under","~ 아래에","The ball is under the bed.","공이 침대 밑에 있어."],
+["over","~ 위에, 넘어","Jump over the fence.","울타리를 뛰어넘어."],
+["above","~보다 위에","The moon is above us.","달이 우리 위에 있어."],
+["below","~보다 아래에","Write below the line.","그 줄 아래에 써."],
+["near","가까이에","My school is near.","우리 학교는 가까워."],
+["inside","안에","Come inside.","안으로 들어와."],
+["outside","밖에","It's cold outside.","밖이 추워."],
+["across","건너서","Walk across the street.","길을 건너가."],
+["along","~을 따라","Walk along the river.","강을 따라 걸어."],
+["through","~을 통해","Go through the tunnel.","터널을 통과해서 가."],
+["without","~ 없이","I can't live without music.","나는 음악 없이 못 살아."],
+["toward","~ 쪽으로","He ran toward me.","그가 내 쪽으로 달려왔어."],
+["against","~에 반대하여","We played against them.","우리는 그들과 맞붙었어."],
+["already","이미, 벌써","I already ate.","나 벌써 먹었어."],
+["yet","아직","Not yet.","아직 아니야."],
+["still","여전히, 아직도","I'm still hungry.","나 아직도 배고파."],
+["almost","거의","I'm almost done.","거의 다 했어."],
+["quite","꽤","The test was quite easy.","시험이 꽤 쉬웠어."],
+["suddenly","갑자기","Suddenly it rained.","갑자기 비가 왔어."],
+["finally","마침내","Finally, we won!","마침내 우리가 이겼어!"],
+["carefully","조심스럽게","Read the question carefully.","문제를 꼼꼼히 읽어."],
+["quickly","빠르게","He ran quickly.","그는 빠르게 달렸어."],
+["slowly","천천히","Speak slowly, please.","천천히 말해 주세요."],
+["easily","쉽게","I solved it easily.","나는 그걸 쉽게 풀었어."],
+["luckily","운 좋게도","Luckily, I found my key.","운 좋게 열쇠를 찾았어."],
+["however","하지만, 그러나","However, I did it.","하지만 나는 해냈어."],
+["everywhere","어디에나","Cats are everywhere.","고양이는 어디에나 있어."],
+["somewhere","어딘가에","My key is somewhere here.","열쇠가 여기 어딘가 있어."],
+["once","한 번, 옛날에","Once upon a time...","옛날 옛적에..."],
+["achieve","이루다, 달성하다","You can achieve your goal.","너는 목표를 이룰 수 있어."],
+["improve","나아지다, 향상하다","Your English improved.","네 영어가 늘었어."],
+["increase","늘다, 늘리다","The price increased.","가격이 올랐어."],
+["decrease","줄다, 줄이다","The noise decreased.","소음이 줄었어."],
+["develop","발전하다, 개발하다","The city developed fast.","그 도시는 빨리 발전했어."],
+["produce","생산하다","This farm produces milk.","이 농장은 우유를 생산해."],
+["provide","제공하다","The school provides lunch.","학교가 점심을 제공해."],
+["offer","제안하다, 주다","He offered me a seat.","그가 나에게 자리를 내줬어."],
+["receive","받다","I received a letter.","나는 편지를 받았어."],
+["accept","받아들이다","I accept your apology.","네 사과를 받아들일게."],
+["refuse","거절하다","She refused my offer.","그녀는 내 제안을 거절했어."],
+["allow","허락하다","Mom allowed me to play.","엄마가 놀아도 된다고 했어."],
+["avoid","피하다","Avoid sweet drinks.","단 음료는 피해."],
+["cause","일으키다, 원인","What caused the fire?","무엇이 불을 일으켰을까?"],
+["continue","계속하다","Continue your story.","이야기를 계속해 봐."],
+["complete","완성하다","I completed the puzzle.","나는 퍼즐을 완성했어."],
+["consider","고려하다","Consider my idea.","내 생각도 고려해 줘."],
+["compare","비교하다","Don't compare me with him.","나를 걔랑 비교하지 마."],
+["contain","담고 있다","This box contains books.","이 상자엔 책이 들어 있어."],
+["include","포함하다","The price includes juice.","그 가격엔 주스가 포함돼."],
+["depend","의존하다, 달려 있다","It depends on you.","그건 너에게 달렸어."],
+["expect","기대하다","I expect good news.","좋은 소식을 기대해."],
+["imagine","상상하다","Imagine a flying cat.","나는 고양이를 상상해 봐."],
+["suggest","제안하다","I suggest a break.","잠깐 쉬는 걸 제안할게."],
+["recommend","추천하다","I recommend this book.","이 책을 추천해."],
+["promise","약속하다","I promise to come.","꼭 올게, 약속해."],
+["forgive","용서하다","Please forgive me.","제발 용서해 줘."],
+["apologize","사과하다","I apologized to her.","나는 그녀에게 사과했어."],
+["appreciate","고마워하다","I appreciate your help.","도와줘서 정말 고마워."],
+["respect","존중하다","Respect your friends.","친구를 존중해."],
+["admire","감탄하다, 존경하다","I admire her courage.","나는 그녀의 용기가 존경스러워."],
+["encourage","격려하다","She encouraged me.","그녀가 나를 격려해 줬어."],
+["support","지지하다, 응원하다","I support your dream.","나는 네 꿈을 응원해."],
+["succeed","성공하다","You will succeed.","너는 성공할 거야."],
+["manage","해내다, 관리하다","I managed to finish.","나는 겨우 끝냈어."],
+["reduce","줄이다","Reduce plastic use.","플라스틱 사용을 줄여."],
+["recycle","재활용하다","Recycle the bottles.","병을 재활용해."],
+["pollute","오염시키다","Cars pollute the air.","차는 공기를 오염시켜."],
+["destroy","파괴하다","The storm destroyed the roof.","폭풍이 지붕을 부쉈어."],
+["damage","손상시키다","The rain damaged the road.","비가 도로를 망가뜨렸어."],
+["waste","낭비하다","Don't waste time.","시간을 낭비하지 마."],
+["replace","교체하다","Replace the battery.","배터리를 교체해."],
+["prevent","막다, 예방하다","Wash hands to prevent colds.","감기를 막으려면 손을 씻어."],
+["cure","치료하다","This medicine cures colds.","이 약은 감기를 낫게 해."],
+["heal","낫다, 치유하다","The wound healed.","상처가 나았어."],
+["relax","쉬다, 긴장을 풀다","Relax and breathe.","긴장 풀고 숨을 쉬어."],
+["breathe","숨 쉬다","Breathe slowly.","천천히 숨 쉬어."],
+["focus","집중하다","Focus on your work.","네 일에 집중해."],
+["notice","알아차리다","I noticed the change.","나는 변화를 알아챘어."],
+["realize","깨닫다","I realized my mistake.","나는 내 실수를 깨달았어."],
+["recognize","알아보다","I recognized her voice.","나는 그녀의 목소리를 알아봤어."],
+["remind","생각나게 하다","Remind me later.","나중에 다시 알려 줘."],
+["require","필요로 하다","This game requires practice.","이 게임은 연습이 필요해."],
+["attend","참석하다","I attended the meeting.","나는 모임에 참석했어."],
+["graduate","졸업하다","She graduated last year.","그녀는 작년에 졸업했어."],
+["apply","지원하다, 신청하다","Apply for the club.","동아리에 지원해 봐."],
+["earn","벌다","He earns money.","그는 돈을 벌어."],
+["donate","기부하다","We donated old clothes.","우리는 헌 옷을 기부했어."],
+["volunteer","자원봉사하다","I volunteer on weekends.","나는 주말에 봉사활동을 해."],
+["celebrate","축하하다","Let's celebrate your birthday.","네 생일을 축하하자."],
+["able","할 수 있는","I'm able to swim.","나는 수영할 수 있어."],
+["possible","가능한","Everything is possible.","모든 건 가능해."],
+["impossible","불가능한","Nothing is impossible.","불가능한 건 없어."],
+["necessary","필요한","Sleep is necessary.","잠은 꼭 필요해."],
+["common","흔한, 공통의","Kim is a common name.","김은 흔한 성이야."],
+["general","일반적인","It's a general rule.","그건 일반적인 규칙이야."],
+["similar","비슷한","Our bags are similar.","우리 가방은 비슷해."],
+["various","다양한","There are various colors.","다양한 색이 있어."],
+["certain","확실한, 어떤","I'm certain about it.","나는 그걸 확신해."],
+["sure","확신하는","Are you sure?","확실해?"],
+["clear","명확한, 맑은","The sky is clear.","하늘이 맑아."],
+["exact","정확한","Tell me the exact time.","정확한 시간을 말해 줘."],
+["correct","올바른, 맞는","Your answer is correct.","네 답이 맞아."],
+["modern","현대의","This is a modern building.","이건 현대식 건물이야."],
+["ancient","고대의","We saw ancient walls.","우리는 고대 성벽을 봤어."],
+["traditional","전통의","I like traditional food.","나는 전통 음식을 좋아해."],
+["global","세계적인","English is a global language.","영어는 세계적인 언어야."],
+["local","지역의","We ate local food.","우리는 그 지역 음식을 먹었어."],
+["foreign","외국의","She speaks a foreign language.","그녀는 외국어를 해."],
+["national","국가의","Today is a national holiday.","오늘은 국경일이야."],
+["social","사회의","Ants are social animals.","개미는 사회적 동물이야."],
+["natural","자연의, 당연한","Honey is a natural sweet.","꿀은 자연의 단맛이야."],
+["average","평균의","My score is above average.","내 점수는 평균보다 높아."],
+["extra","추가의, 여분의","I need extra paper.","종이가 더 필요해."],
+["entire","전체의","I read the entire book.","나는 그 책을 다 읽었어."],
+["single","단 하나의","I didn't miss a single day.","나는 하루도 빠지지 않았어."],
+["double","두 배의","I want a double portion.","곱빼기로 주세요."],
+["huge","거대한","The building is huge.","그 건물은 거대해."],
+["tiny","아주 작은","The ant is tiny.","개미는 아주 작아."],
+["giant","거인 같은, 거대한","A giant wave came.","거대한 파도가 왔어."],
+["positive","긍정적인","Think positive.","긍정적으로 생각해."],
+["negative","부정적인","Don't be negative.","부정적으로 생각하지 마."],
+["active","활동적인","My dog is active.","우리 개는 활발해."],
+["creative","창의적인","Your idea is creative.","네 아이디어는 창의적이야."],
+["confident","자신 있는","Be confident!","자신감을 가져!"],
+["comfortable","편안한","This chair is comfortable.","이 의자는 편해."],
+["convenient","편리한","The subway is convenient.","지하철은 편리해."],
+["silent","조용한, 침묵의","The room was silent.","방이 조용했어."],
+["patient","참을성 있는","Be patient.","조금만 참아."],
+["independent","독립적인","She is independent.","그녀는 독립적이야."],
+["responsible","책임감 있는","I'm responsible for my cat.","내 고양이는 내가 책임져."],
+["healthy","건강한","Eat healthy food.","건강한 음식을 먹어."],
+["smooth","매끄러운","The road is smooth.","길이 매끄러워."],
+["rough","거친","The paper feels rough.","종이가 거칠거칠해."],
+["sharp","날카로운","The knife is sharp.","그 칼은 날카로워."],
+["environment","환경","Protect the environment.","환경을 보호해."],
+["pollution","오염","Air pollution is serious.","공기 오염이 심각해."],
+["earth","지구, 땅","The earth is round.","지구는 둥글어."],
+["planet","행성","Mars is a planet.","화성은 행성이야."],
+["space","우주, 공간","I want to go to space.","나는 우주에 가고 싶어."],
+["universe","우주(전체)","The universe is endless.","우주는 끝이 없어."],
+["ocean","대양, 바다","The Pacific is an ocean.","태평양은 대양이야."],
+["forest","숲","Bears live in the forest.","곰은 숲에 살아."],
+["desert","사막","Camels live in the desert.","낙타는 사막에 살아."],
+["climate","기후","The climate is changing.","기후가 변하고 있어."],
+["temperature","온도, 기온","The temperature dropped.","기온이 떨어졌어."],
+["degree","도(온도), 정도","It's 30 degrees today.","오늘 30도야."],
+["level","수준, 단계","My level went up.","내 레벨이 올랐어."],
+["amount","양","A small amount of salt.","소금 조금."],
+["total","합계, 전체","The total is 5,000 won.","합계는 5,000원이야."],
+["percent","퍼센트","I'm 100 percent sure.","나는 100퍼센트 확신해."],
+["million","백만","Millions of people watched.","수백만 명이 봤어."],
+["thousand","천(1000)","A thousand won, please.","천 원 주세요."],
+["hundred","백(100)","One hundred points!","100점이야!"],
+["technology","기술","Technology changes fast.","기술은 빠르게 변해."],
+["machine","기계","This machine makes coffee.","이 기계는 커피를 만들어."],
+["robot","로봇","Robots help people.","로봇은 사람을 도와."],
+["engine","엔진","The engine stopped.","엔진이 멈췄어."],
+["battery","배터리, 건전지","My battery is low.","배터리가 얼마 없어."],
+["screen","화면","Don't touch the screen.","화면을 만지지 마."],
+["button","단추, 버튼","Press the button.","버튼을 눌러."],
+["keyboard","키보드","I type on the keyboard.","나는 키보드로 타자를 쳐."],
+["internet","인터넷","I found it on the internet.","인터넷에서 그걸 찾았어."],
+["website","웹사이트","Visit our website.","우리 웹사이트에 들어와 봐."],
+["email","이메일","Send me an email.","이메일을 보내 줘."],
+["file","파일","Save the file.","파일을 저장해."],
+["data","데이터, 자료","The data is useful.","그 자료는 유용해."],
+["program","프로그램","I made a simple program.","나는 간단한 프로그램을 만들었어."],
+["system","시스템, 체계","The system is down.","시스템이 멈췄어."],
+["network","네트워크, 망","The network is slow.","네트워크가 느려."],
+["society","사회","We live in a society.","우리는 사회 속에 살아."],
+["community","공동체, 지역사회","Our community is small.","우리 동네는 작아."],
+["government","정부","The government made a new law.","정부가 새 법을 만들었어."],
+["president","대통령, 회장","She became the president.","그녀가 회장이 됐어."],
+["leader","지도자, 리더","He is a good leader.","그는 좋은 리더야."],
+["member","구성원, 회원","I'm a club member.","나는 동아리 회원이야."],
+["citizen","시민","He is a good citizen.","그는 좋은 시민이야."],
+["neighbor","이웃","My neighbor has a dog.","우리 이웃은 개를 키워."],
+["stranger","낯선 사람","Don't follow strangers.","낯선 사람을 따라가지 마."],
+["customer","손님, 고객","The customer is waiting.","손님이 기다리고 있어."],
+["guest","손님(초대받은)","We have guests today.","오늘 손님이 와."],
+["host","주인, 진행자","He was a good host.","그는 좋은 주인이었어."],
+["owner","주인, 소유자","Who is the owner?","주인이 누구야?"],
+["boss","상사, 사장","My boss is kind.","우리 사장님은 친절해."],
+["staff","직원","The staff helped me.","직원이 나를 도와줬어."],
+["company","회사","Dad works at a company.","아빠는 회사에 다녀."],
+["office","사무실","The office is on the third floor.","사무실은 3층에 있어."],
+["factory","공장","The factory makes cars.","그 공장은 차를 만들어."],
+["business","사업","She started a business.","그녀는 사업을 시작했어."],
+["industry","산업","The game industry is big.","게임 산업은 규모가 커."],
+["product","제품","This product is new.","이 제품은 신제품이야."],
+["price","가격","The price is low.","가격이 싸."],
+["cost","비용, 값이 들다","It costs too much.","그건 너무 비싸."],
+["value","가치","Time has great value.","시간은 큰 가치가 있어."],
+["sale","판매, 세일","The shoes are on sale.","그 신발은 세일 중이야."],
+["effort","노력","Effort never lies.","노력은 배신하지 않아."],
+["courage","용기","It takes courage.","그건 용기가 필요해."],
+["attitude","태도","A good attitude helps.","좋은 태도가 도움이 돼."],
+["manner","예의, 방식","Mind your manners.","예의를 지켜."],
+["behavior","행동","His behavior was strange.","그의 행동이 이상했어."],
+["emotion","감정","Music moves our emotions.","음악은 감정을 움직여."],
+["stress","스트레스","Games reduce my stress.","게임은 내 스트레스를 줄여 줘."],
+["pressure","압박, 압력","I feel test pressure.","시험 압박감이 느껴져."],
+["relationship","관계","We have a good relationship.","우리는 사이가 좋아."],
+["friendship","우정","Our friendship is strong.","우리 우정은 단단해."],
+["teamwork","팀워크, 협동","Teamwork wins games.","팀워크가 경기를 이기게 해."],
+["challenge","도전","I like a new challenge.","나는 새로운 도전이 좋아."],
+["success","성공","Effort brings success.","노력이 성공을 가져와."],
+["failure","실패","Failure teaches us.","실패는 우리를 가르쳐."],
+["experience","경험","It was a good experience.","좋은 경험이었어."],
+["probably","아마","It will probably rain.","아마 비가 올 거야."],
+["perhaps","어쩌면","Perhaps you are right.","어쩌면 네 말이 맞아."],
+["especially","특히","I like fruit, especially grapes.","나는 과일, 특히 포도를 좋아해."],
+["actually","사실은","Actually, I was scared.","사실 나 무서웠어."],
+["recently","최근에","I moved recently.","나 최근에 이사했어."],
+["immediately","즉시","Call me immediately.","즉시 전화해."],
+["instead","대신에","Drink water instead.","대신 물을 마셔."],
+["anyway","어쨌든","Anyway, thanks.","어쨌든 고마워."],
+["therefore","그러므로","Therefore, I agree.","그러므로 나는 동의해."],
+["though","~이긴 하지만","It's hard, though.","그래도 어렵긴 해."],
+["although","비록 ~이지만","Although it rained, we played.","비가 왔지만 우리는 놀았어."],
+["unless","~하지 않으면","You'll be late unless you run.","뛰지 않으면 늦을 거야."],
+["while","~하는 동안","I read while eating.","나는 먹으면서 읽어."],
+["until","~까지","Wait until three.","3시까지 기다려."],
+["since","~부터, ~때문에","I've known him since last year.","나는 작년부터 그를 알았어."],
+["beyond","~ 너머에","Look beyond the mountain.","산 너머를 봐."],
+["despite","~에도 불구하고","Despite the rain, we won.","비에도 불구하고 우리는 이겼어."],
+["whether","~인지 아닌지","I don't know whether he'll come.","그가 올지 안 올지 모르겠어."],
+["forever","영원히","Friends forever!","영원한 친구!"],
+["anymore","더 이상","I'm not a kid anymore.","나는 더 이상 애가 아니야."]
 ];
 const WORDS_BASE=WORDS.length;
 
@@ -933,9 +1763,28 @@ const SESSION_DEF=[
  {n:3,title:"자기 전 복습",desc:"오늘 것 다시 꺼내기",cat:"sleep"}
 ];
 
+/* ---- 단계 (30단어 = 1단계, 기본 900단어 = 30단계) ---- */
+const STAGE_SIZE=30,STAGE_N=Math.ceil(WORDS_BASE/STAGE_SIZE);
+function stageRange(n){const a=(n-1)*STAGE_SIZE;return [a,Math.min(a+STAGE_SIZE,WORDS_BASE)];}
+function curStage(){for(let n=1;n<=STAGE_N;n++)if(!S.stage.passed[n])return n;return STAGE_N+1;}
+function stageMet(n){const r=stageRange(n);for(let i=r[0];i<r[1];i++)if(!S.words[i])return false;return true;}
+function stageMetCount(n){const r=stageRange(n);let c=0;for(let i=r[0];i<r[1];i++)if(S.words[i])c++;return c;}
+function dictLockedToday(){const t=S.stage.tries;return !!(t&&t.d===todayKey()&&t.n>=2);}
+function dictOpen(){const n=curStage();return (n<=STAGE_N&&stageMet(n)&&!dictLockedToday())?n:0;}
+function dueStageReviews(){const t=todayKey();return (S.stage.reviews||[]).filter(function(r){return !r.done&&r.d<=t;});}
+
+/* ---- 오답 큐: 받아쓰기·퀴즈에서 틀린 단어를 다음 세션 맨 앞에 (이틀 연속 정답이면 졸업) ---- */
+function wqAdd(id){if(!S.wq)S.wq={};if(!S.wq[id])S.wq[id]={ok:0,last:""};else{S.wq[id].ok=0;S.wq[id].last="";}}
+function wqMark(id,ok){
+  const e=S.wq&&S.wq[id];if(!e)return;
+  if(ok){const t=todayKey();if(e.last!==t){e.ok++;e.last=t;if(e.ok>=2)delete S.wq[id];}}
+  else{e.ok=0;e.last="";}
+}
+function wqDue(){const t=todayKey();return Object.keys(S.wq||{}).map(Number).filter(function(id){return WORDS[id]&&S.wq[id].last!==t;});}
+
 /* ================= 상태 ================= */
 let S;
-function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]}};}
+function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]},wbase:WORDS_BASE,stage:{passed:{},reviews:[],tries:null},wq:{}};}
 function migrate(){
   if(!S.settings)S.settings={name:"",newPerDay:7};
   if(!S.math)S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};
@@ -964,6 +1813,22 @@ function migrate(){
   if(!S.dev)S.dev={k2:"",unlock:false};
   Object.keys(S.words||{}).forEach(function(id){var w=S.words[id];if(!w.sp)w.sp=1;if(w.spOk===undefined)w.spOk=0;});
   Object.keys(S.log).forEach(function(k){var l=S.log[k];if(!l.m)l.m=[0,0];if(l.sp===undefined)l.sp=false;if(l.wk===undefined)l.wk=false;if(l.ag===undefined)l.ag=false;if(l.nt===undefined)l.nt=0;});
+  /* 단어장 대확장(기본 100→900) 인덱스 시프트 — 불러온 단어는 WORDS_BASE 뒤에 붙기 때문에
+     옛 기록(wbase 없음 = 기본 100개 시절)의 인덱스 ≥100 을 새 기본 뒤로 밀어 준다 */
+  if(S.wbase===undefined)S.wbase=100;
+  if(S.wbase<WORDS_BASE){
+    var ob=S.wbase,sh=WORDS_BASE-ob,nw={};
+    Object.keys(S.words||{}).forEach(function(k){var i=+k;nw[i>=ob?i+sh:i]=S.words[k];});
+    S.words=nw;
+    Object.keys(S.log||{}).forEach(function(d){var l=S.log[d];
+      if(Array.isArray(l.newIds))l.newIds=l.newIds.map(function(i){return i>=ob?i+sh:i;});
+      if(Array.isArray(l.wrong))l.wrong=l.wrong.map(function(i){return i>=ob?i+sh:i;});});
+    S.wbase=WORDS_BASE;
+  }
+  if(!S.stage)S.stage={passed:{},reviews:[],tries:null};
+  if(!S.stage.passed)S.stage.passed={};
+  if(!Array.isArray(S.stage.reviews))S.stage.reviews=[];
+  if(!S.wq||typeof S.wq!=="object")S.wq={};
 }
 function load(){try{S=JSON.parse(localStorage.getItem("catstudy"))||defState();}catch(e){S=defState();}migrate();applyImports();}
 function save(){try{localStorage.setItem("catstudy",JSON.stringify(S));}catch(e){}syncPush();}
@@ -1218,9 +2083,21 @@ function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.re
 function newWordsToday(){
   const log=dayLog();
   if(log.newIds.length)return log.newIds;
-  const learned=Object.keys(S.words).map(Number);
+  const t=todayKey();
+  /* 스트레스 완충: 밀린 복습이 20개 넘으면 그날 새 단어를 절반으로 (복습이 먼저, 새 학습은 계속) */
+  let cap=S.settings.newPerDay;
+  const dueN=Object.keys(S.words).filter(id=>S.words[id].due<=t).length;
+  if(dueN>20)cap=Math.max(1,Math.ceil(cap/2));
   const next=[];
-  for(let i=0;i<WORDS.length&&next.length<S.settings.newPerDay;i++){if(!learned.includes(i))next.push(i);}
+  const n=curStage();
+  if(n<=STAGE_N){
+    /* 새 단어는 항상 현재 단계 안에서만 (단계를 다 만나면 승급 받아쓰기가 먼저) */
+    const r=stageRange(n);
+    for(let i=r[0];i<r[1]&&next.length<cap;i++){if(!S.words[i])next.push(i);}
+  }else{
+    /* 30단계 전부 통과 — 불러온 단어 등 남은 것에서 */
+    for(let i=0;i<WORDS.length&&next.length<cap;i++){if(!S.words[i])next.push(i);}
+  }
   log.newIds=next;save();
   return next;
 }
@@ -1251,7 +2128,10 @@ function renderHome(){
     const b=document.createElement("button");
     b.className="scard"+(done?" done":locked?" lock":"");
     let desc=sd.desc;
-    if(sd.n===1)desc="새 단어 "+newWordsToday().length+"개";
+    if(sd.n===1){
+      const n1=newWordsToday().length;
+      desc=n1?("새 단어 "+n1+"개 · "+curStage()+"단계"):dictOpen()?(curStage()+"단계 승급 받아쓰기!"):"오늘 새 단어 없음";
+    }
     let catKey=sd.cat,ttl=sd.title;
     if(sd.n===2){
       const k=sessionKind();
@@ -1280,7 +2160,12 @@ function startSession(n){
   cur={session:n,cards:[],idx:0,quiz:[],qidx:0,correct:0};
   if(n===1){
     const ids=newWordsToday();
-    if(!ids.length){toast("레벨 1 단어를 다 배웠어! 다음 세트가 필요해");return;}
+    if(!ids.length){
+      const dn=dictOpen();
+      if(dn){startDict(dn,null);return;}
+      if(dictLockedToday()){toast("오늘은 받아쓰기 두 번 도전했어. 내일 다시!");return;}
+      toast("단어를 전부 다 배웠어! 대단한걸");return;
+    }
     cur.cards=ids.slice();
     showCard();
   }else if(n===2){
@@ -1290,12 +2175,16 @@ function startSession(n){
     else if(kind==="again"){startAgain(2);return;}
     else if(kind!=="eng"){startMath(kind);return;}
     const today=dayLog().newIds.filter(id=>S.words[id]);
-    const due=dueReviews();
+    const wqIds=wqDue().filter(id=>S.words[id]).slice(0,6);
+    const due=dueReviews().filter(id=>wqIds.indexOf(id)<0);
     let qs=[];
     today.forEach(id=>qs.push({id,dir:"k2e"}));
     due.slice(0,amt(10)).forEach(id=>qs.push({id,dir:"e2k"}));
     if(qs.length<6)today.forEach(id=>qs.push({id,dir:"e2k"}));
-    cur.quiz=shuffle(qs);
+    /* 워밍업 2개(잘 아는 단어로 가볍게 시작) → 오답 큐(틀렸던 것 먼저) → 나머지 */
+    const inQs={};qs.forEach(q=>inQs[q.id]=1);wqIds.forEach(id=>inQs[id]=1);
+    const warm=shuffle(Object.keys(S.words).map(Number).filter(id=>WORDS[id]&&S.words[id].box>=3&&!inQs[id])).slice(0,2);
+    cur.quiz=warm.map(id=>({id,dir:"e2k"})).concat(wqIds.map(id=>({id,dir:"e2k"})),shuffle(qs));
     showQuiz();
   }else{
     const log=dayLog();
@@ -1394,13 +2283,13 @@ function answer(btn,ok,q){
   if(ok){
     btn.classList.remove("dim");btn.classList.add("correct");
     log.quiz[0]++;cur.correct++;
-    srs(q.id,true);
+    srs(q.id,true);wqMark(q.id,true);
     $("qFb").innerHTML='<img src="'+CATS.jump+'"> 정답! '+w[0]+' = '+w[1];
   }else{
     btn.classList.remove("dim");btn.classList.add("wrong");btn.classList.add("shake");
     document.querySelectorAll(".opt").forEach(o=>{if(o.textContent===(q.dir==="e2k"?w[1]:w[0])){o.classList.remove("dim");o.classList.add("correct");}});
     if(!log.wrong.includes(q.id))log.wrong.push(q.id);
-    srs(q.id,false);
+    srs(q.id,false);wqAdd(q.id);
     logWrong({subject:"english",topic:"영단어",
       q:e2k?(w[0]+"의 뜻은?"):("'"+w[1]+"'을(를) 영어로?"),a:e2k?w[1]:w[0],chosen:btn.textContent,
       opts:Array.prototype.map.call(document.querySelectorAll("#qOpts .opt"),function(o){return o.textContent;}),
@@ -1520,6 +2409,21 @@ function fbSend(){
 let vFilter="all";
 const V_CHIPS=[["all","전체"],["new","새로 배움"],["rev","복습 중"],["master","거의 마스터"],["hard","헷갈리는 것"]];
 function renderVocab(){
+  const vs=$("vocabStage");
+  if(vs){
+    const n=curStage();
+    let h='<div class="setrow" style="margin-bottom:14px"><div class="k">단계 진행 · '+(n>STAGE_N?"전부 통과!":n+"단계 / "+STAGE_N)+'</div>';
+    if(n<=STAGE_N){
+      const met=stageMetCount(n);
+      h+='<div class="vsbar"><i style="width:'+Math.round(met/STAGE_SIZE*100)+'%"></i></div>';
+      h+='<p class="tip" style="margin:0">이번 단계 단어 '+met+'/'+STAGE_SIZE+' 만남 · 통과한 단계 '+(n-1)+'개</p>';
+      if(dictOpen())h+='<button class="setbtn" style="background:var(--orange);margin-top:10px" onclick="startDict('+n+',null)">'+n+'단계 승급 받아쓰기 시작</button>';
+      else if(met>=STAGE_SIZE&&dictLockedToday())h+='<p class="tip" style="margin:6px 0 0">오늘은 받아쓰기 도전 끝 — 내일 다시!</p>';
+      else h+='<p class="tip" style="margin:6px 0 0">30단어를 다 만나면 승급 받아쓰기가 열려</p>';
+    }else h+='<p class="tip" style="margin:0">기본 단어 900개 전 단계 통과! 대단해</p>';
+    h+='</div>';
+    vs.innerHTML=h;
+  }
   $("vocabChips").innerHTML="";
   V_CHIPS.forEach(([k,label])=>{
     const b=document.createElement("button");
@@ -2216,6 +3120,12 @@ function pendingSets(){return ((S.imp&&S.imp.quiz)||[]).filter(function(s){retur
 function renderExtraStrips(){
   const el=$("extraStrip");if(!el)return;
   let h="";
+  /* 승급·복습 받아쓰기 (단계 시스템) */
+  const dn=dictOpen();
+  if(dn)h+='<div class="mstrip" style="cursor:pointer" onclick="startDict('+dn+',null)"><img src="'+CATS.grad+'"><div style="flex:1"><div class="t">승급 받아쓰기 · '+dn+'단계</div><div class="d">30단어를 다 만났어! 15문제 · 80점이면 승급 · +50P</div></div><div class="go">▶</div></div>';
+  else if(curStage()<=STAGE_N&&stageMet(curStage())&&dictLockedToday())h+='<div class="mstrip"><img src="'+CATS.sleep+'"><div style="flex:1"><div class="t">'+curStage()+'단계 받아쓰기 — 내일 다시</div><div class="d">오늘 두 번 도전했어. 틀린 단어만 눈으로 봐 두자</div></div></div>';
+  const rv=dueStageReviews();
+  if(rv.length)h+='<div class="mstrip" style="cursor:pointer" onclick="startReviewDict()"><img src="'+CATS.quiz+'"><div style="flex:1"><div class="t">복습 받아쓰기 · '+rv[0].stage+'단계</div><div class="d">통과한 단계 다시 확인 · +20P'+(rv.length>1?" · 대기 "+rv.length+"개":"")+'</div></div><div class="go">▶</div></div>';
   pendingDecks().slice(0,2).forEach(function(d){
     h+='<div class="mstrip" style="cursor:pointer" onclick="startDeck(\''+d.id+'\')"><img src="'+CATS.flashcard+'"><div style="flex:1"><div class="t">암기 카드 · '+esc(d.name)+'</div><div class="d">'+subjName(d.subject)+' · 오늘 '+Math.min(12,deckDue(d).length)+'장 · 외운 카드 '+deckLearned(d)+'/'+d.cards.length+'</div></div><div class="go">▶</div></div>';
   });
@@ -2291,6 +3201,102 @@ function finishExtra(){
     finishSession();
     $("doneCat").src=cat;$("doneTitle").textContent=title;$("doneMsg").textContent=msg;
   }else doneScreen(cat,title,pts,msg);
+}
+
+/* ================= 받아쓰기 시험 (승급·복습 — 힌트 없음, 일괄 채점) ================= */
+let dq=null;
+function startDict(stage,review){
+  const r=stageRange(stage),ids=[];
+  for(let i=r[0];i<r[1];i++)if(WORDS[i])ids.push(i);
+  if(!ids.length){toast("이 단계에는 단어가 없어");return;}
+  const pick=shuffle(ids).slice(0,15);
+  pick.forEach(function(id){const w=WORDS[id][0];if(!PRON[w.toLowerCase()])fetchPron(w);});
+  dq={stage:stage,review:review||null,idx:0,list:pick.map(function(id){
+    return {id:id,f:["listen","listenMean","mean"][ri(0,2)],ans:""};
+  })};
+  showDict();
+}
+function showDict(){
+  if(dq.idx>=dq.list.length)return gradeDict();
+  const q=dq.list[dq.idx],w=WORDS[q.id];
+  if(q.f!=="mean"&&!canSpeak(w[0]))q.f="mean"; /* 소리를 못 내는 기기·단어는 뜻 보기형으로 폴백 */
+  $("dcQ").style.display="";$("dcResult").style.display="none";
+  $("dcFill").style.width=(dq.idx/dq.list.length*100)+"%";
+  $("dcCount").textContent=(dq.idx+1)+"/"+dq.list.length;
+  $("dcDir").textContent=(dq.review?"복습 받아쓰기":"승급 받아쓰기")+" · "+
+    (q.f==="listen"?"듣고 영어로 쓰기":q.f==="listenMean"?"듣고 쓰기 (뜻 힌트)":"뜻 보고 영어로 쓰기");
+  $("dcWord").textContent=(q.f==="listen")?"🔊":w[1];
+  $("dcSpk").style.display=(q.f==="mean")?"none":"";
+  const inp=$("dcInput");inp.value=q.ans||"";
+  $("dcGo").textContent=(dq.idx+1>=dq.list.length)?"제출하기":"다음 →";
+  show("scr-dict");
+  if(q.f!=="mean")setTimeout(function(){playPron(w[0]);},250);
+  setTimeout(function(){try{inp.focus();}catch(e){}},120);
+}
+function dictSpeak(){if(dq&&dq.list[dq.idx])playPron(WORDS[dq.list[dq.idx].id][0]);}
+function dictNext(){
+  const q=dq.list[dq.idx];
+  q.ans=($("dcInput").value||"").trim();
+  if(!q.ans&&!q.skip){q.skip=1;toast("모르면 비워 두고 한 번 더 누르면 넘어가");return;}
+  dq.idx++;showDict();
+}
+function dictQuit(){
+  if(dq&&dq.idx>0&&dq.idx<dq.list.length&&!dq.quitAsk){dq.quitAsk=1;toast("나가면 이번 시험은 무효야. 한 번 더 누르면 나가");return;}
+  dq=null;goHome();
+}
+function startReviewDict(){const r=dueStageReviews()[0];if(r)startDict(r.stage,r);}
+function startReviewDictAt(d,stage){
+  const r=(S.stage.reviews||[]).filter(function(x){return x.d===d&&x.stage===stage&&!x.done;})[0];
+  if(r)startDict(r.stage,r);
+}
+function gradeDict(){
+  const lg=dayLog();let right=0;
+  dq.list.forEach(function(q){
+    const w=WORDS[q.id];
+    q.ok=(q.ans||"").toLowerCase()===w[0].toLowerCase();
+    if(q.ok){right++;wqMark(q.id,true);}
+    else{
+      wqAdd(q.id);srs(q.id,false);
+      if(lg.wrong.indexOf(q.id)<0)lg.wrong.push(q.id);
+      logWrong({subject:"english",topic:"받아쓰기",q:"'"+w[1]+"' 받아쓰기",a:w[0],chosen:q.ans||"(빈칸)",opts:[],steps:[w[2],w[3]]});
+    }
+  });
+  const score=Math.round(right/dq.list.length*100);
+  const pass=score>=80;
+  let title="",msg="",pts=0;
+  if(dq.review){
+    dq.review.done=todayKey();pts=20;S.points+=20;
+    title=dq.stage+"단계 복습 끝!";
+    msg=pass?"아직 잘 기억하고 있네. 이게 진짜 실력이야":"잊어버린 건 오답 큐에 넣어 뒀어. 퀴즈에서 다시 잡자";
+  }else if(pass){
+    S.stage.passed[dq.stage]=todayKey();S.stage.tries=null;pts=50;S.points+=50;
+    S.stage.reviews.push({stage:dq.stage,d:addDays(todayKey(),7),done:""},{stage:dq.stage,d:addDays(todayKey(),30),done:""});
+    title=dq.stage+"단계 통과!";
+    msg=(dq.stage+1<=STAGE_N?("이제 "+(dq.stage+1)+"단계 단어를 만날 수 있어"):"모든 단계를 끝냈어!")+" · 7일·30일 뒤 복습 받아쓰기가 달력에 잡혔어";
+  }else{
+    const t=S.stage.tries;
+    S.stage.tries=(t&&t.d===todayKey())?{d:todayKey(),n:t.n+1}:{d:todayKey(),n:1};
+    title="아깝다! 80점부터 승급이야";
+    msg=dictLockedToday()?"오늘은 여기까지. 틀린 단어를 보고 내일 다시 도전하자":"틀린 단어를 잠깐 보고, 오늘 한 번 더 도전할 수 있어";
+  }
+  save();
+  const wrongs=dq.list.filter(function(q){return !q.ok;});
+  let h='<div class="setrow" style="text-align:center"><div style="font-size:42px;font-weight:800">'+score+'<small style="font-size:16px">점</small></div>'
+   +'<div class="k" style="margin-top:4px">'+esc(title)+'</div>'
+   +'<p class="tip">'+esc(msg)+(pts?" · +"+pts+"P":"")+'</p></div>';
+  if(wrongs.length){
+    h+='<div class="setrow"><div class="k">틀린 단어 '+wrongs.length+'개 — 한 번씩 소리 내서 읽어 보자</div>';
+    wrongs.forEach(function(q){const w=WORDS[q.id];
+      h+='<div class="dcw"><b>'+esc(w[0])+'</b> — '+esc(w[1])+'<br><span class="dcx">내가 쓴 것: '+esc(q.ans||"(빈칸)")+'</span><br><span class="dcx">'+esc(w[2])+' '+esc(w[3])+'</span></div>';
+    });
+    h+='</div>';
+  }
+  h+='<div class="btnrow">';
+  if(!dq.review&&!pass&&!dictLockedToday())h+='<button class="bigbtn o" onclick="startDict('+dq.stage+',null)">한 번 더 도전</button>';
+  h+='<button class="bigbtn '+((pass||dq.review)?"o":"g")+'" onclick="dq=null;goHome()">홈으로</button></div>';
+  $("dcQ").style.display="none";
+  $("dcResult").style.display="";$("dcResult").innerHTML=h;
+  $("dcFill").style.width="100%";$("dcCount").textContent="끝!";
 }
 
 /* ================= 스펠링 연습 ================= */
@@ -3298,12 +4304,13 @@ function calRender(){
     const lg=S.log[key],sess=lg&&lg.s?lg.s.filter(Boolean).length:0;
     if(!off&&sess)studied++;
     const pl=planFor(key),my=myFor(key);
+    const dv=(S.stage.reviews||[]).filter(function(r){return r.d===key&&!r.done;});
     const b=document.createElement("button");
     b.className="cday"+(off?" off":"")+(dt.getDay()===0?" sun":dt.getDay()===6?" sat":"")+
       (inExam(key)?" exam":"")+(key===tk?" today":"")+(key===calSel?" sel":"");
     b.innerHTML='<span class="n">'+dt.getDate()+'</span>'+
       '<span class="cdots">'+"<i></i>".repeat(sess)+'</span>'+
-      '<span class="cbars">'+(pl.length?'<i class="plan"></i>':"")+(my.length?'<i class="my"></i>':"")+'</span>';
+      '<span class="cbars">'+(pl.length?'<i class="plan"></i>':"")+(my.length?'<i class="my"></i>':"")+(dv.length?'<i class="dict"></i>':"")+'</span>';
     b.onclick=function(){calSel=key;if(off)calYM={y:dt.getFullYear(),m:dt.getMonth()};calRender();};
     g.appendChild(b);
   }
@@ -3327,6 +4334,12 @@ function calDetail(){
     h+='<div class="citem"><span class="tag plan">계획</span>'+
       '<span class="tx'+(on?" off":"")+'">'+esc(p.title)+(p.sess?(" · 세션 "+p.sess):"")+'</span>'+
       '<button class="cx'+(on?" on":"")+'" onclick="planToggle(\''+esc(p.k)+'\')">'+(on?"✓":"○")+'</button></div>';
+  });
+  (S.stage.reviews||[]).filter(function(r){return r.d===key&&!r.done;}).forEach(function(r){
+    const canDo=key<=todayKey();
+    h+='<div class="citem"><span class="tag" style="background:var(--orange);color:#fff">받아쓰기</span>'+
+      '<span class="tx">'+r.stage+'단계 복습 받아쓰기'+(canDo?"":" (예정)")+'</span>'+
+      (canDo?'<button class="cx" onclick="startReviewDictAt(\''+key+'\','+r.stage+')">▶</button>':"")+'</div>';
   });
   my.forEach(function(a){
     h+='<div class="citem"><span class="tag'+(a.ok?" ok":"")+'">내 일정</span>'+
