@@ -47,7 +47,6 @@ button{border:none;background:none;cursor:pointer}
   background:var(--surf);border:1px solid var(--line);border-radius:8px;
   padding:6px 10px;width:205px;font-size:12px;font-family:var(--mo);color:var(--paper);
 }
-#famCode{width:112px;text-transform:uppercase}
 .btn{
   background:var(--surf);border:1px solid var(--line);border-radius:10px;
   padding:7px 13px;font-size:12.5px;font-weight:700;white-space:nowrap;
@@ -332,9 +331,6 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
   <button class="btn" onclick="$('impFile').click()">계획 불러오기</button>
   <input type="file" id="impFile" accept=".json" hidden onchange="importPlan(this)">
 
-  <label class="fld">가족 코드
-    <input id="famCode" spellcheck="false" placeholder="CAT-XXXXXX" maxlength="10">
-  </label>
   <button class="btn" onclick="pushPlan()">앱으로 보내기</button>
   <button class="btn" onclick="pullDone()">완료 받기</button>
   <button class="btn go" onclick="adOpen()">관리</button>
@@ -382,7 +378,7 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
     <div class="adHead">
       <div>
         <h2 style="margin:0">아이 앱 관리</h2>
-        <div class="adSub" id="adState">가족 코드를 넣고 [기록 새로고침]을 누르세요</div>
+        <div class="adSub" id="adState">[기록 새로고침]을 누르면 아이 기록이 보여요</div>
       </div>
       <div style="flex:1"></div>
       <button class="btn sm" onclick="adRefresh(true)">기록 새로고침</button>
@@ -402,7 +398,7 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
    ========================================================== */
 const $ = function(id){ return document.getElementById(id); };
 const DAYN = ["일","월","화","수","목","금","토"];
-const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", code:"catstudy_fam", cmdq:"catstudy_cmdq" };
+const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", cmdq:"catstudy_cmdq" };
 
 let PLAN = {};        // { "2026-08": [ {i, node, date, s, done} ] }
 let ROOT = "F:/projects/study-cat";
@@ -905,10 +901,11 @@ function importPlan(el){
 }
 
 /* ==========================================================
-   아이 앱과 주고받기 (Supabase — 가족 코드)
+   아이 앱과 주고받기 (Supabase — study-cat 전용 프로젝트라 코드 입력 없이 고정 코드)
    계획은 catstudy_plan 표로 내려보내고, 완료 표시는 아이 기록(catstudy_state)에서 읽는다.
    ========================================================== */
 const SB={url:"https://wlkyqgfpoenyumudpxle.supabase.co",key:"sb_publishable_fPJ7glllJc9KqdDZmMIwXg_F01uTH5y"};
+const FAM_CODE="CAT-STUDY1";
 function rpc(fn,body){
   return fetch(SB.url+"/rest/v1/rpc/"+fn,{method:"POST",
     headers:{"Content-Type":"application/json","apikey":SB.key,"Authorization":"Bearer "+SB.key},
@@ -917,13 +914,7 @@ function rpc(fn,body){
       return r.text().then(function(t){ return t?JSON.parse(t):null; });
     });
 }
-function famCode(){
-  const c=($("famCode").value||"").trim().toUpperCase();
-  $("famCode").value=c;
-  if(!/^CAT-[A-Z0-9]{6}$/.test(c)){ toast("가족 코드를 CAT-XXXXXX 형태로 넣어 주세요"); return ""; }
-  jsave(LS.code,c);
-  return c;
-}
+function famCode(){ return FAM_CODE; }
 /* 아이 앱에는 curriculum.js 가 없다 → 노드 제목을 같이 실어 보낸다 */
 function planNames(){
   const n={};
@@ -953,7 +944,7 @@ function pullDone(){
   toast("완료를 받아오는 중…");
   rpc("catstudy_get",{p_code:c}).then(function(rows){
     const r=rows&&rows[0];
-    if(!r||!r.doc){ toast("아이 기록이 아직 없어요 (앱에서 기록 공유를 켰나요?)"); return; }
+    if(!r||!r.doc){ toast("아이 기록이 아직 없어요 (아이 폰에서 자동 저장을 켰나요?)"); return; }
     const done=r.doc.planDone||{};
     let hit=0;
     Object.keys(PLAN).forEach(function(k){
@@ -1008,7 +999,7 @@ function adRefresh(loud){
     const r=rows&&rows[0];
     if(!r||!r.doc){
       CHILD=null;CHILD_AT="";adRender();
-      $("adState").textContent="이 코드로 올라온 기록이 아직 없어요 — 아이 앱 [엄마 모드 > 기록 공유]가 켜져 있는지 확인";
+      $("adState").textContent="서버에 올라온 기록이 아직 없어요 — 아이 폰 [엄마 모드 > 자동 저장]이 켜져 있는지 확인";
       return;
     }
     CHILD=r.doc;CHILD_AT=r.updated_at;
@@ -1073,7 +1064,7 @@ function adWsClear(){if(!adArmed("ws","adWsBtn"))return;queueOp({t:"wsClear"},"�
 function adDeckDel(i){const x=AD_DECKS[i];if(!x)return;queueOp({t:"deckDel",sid:x.id},"암기 세트 지우기: "+x.name);}
 function adQuizDel(i){const x=AD_SETS[i];if(!x)return;queueOp({t:"quizDel",sid:x.id},"문제 세트 지우기: "+x.name);}
 function adImpWordsClear(){queueOp({t:"impWordsClear"},"불러온 단어 전부 지우기");}
-function adReset(){if(!adArmed("reset","adResetBtn"))return;queueOp({t:"reset"},"전체 초기화 (기록 공유·비밀번호는 유지)");}
+function adReset(){if(!adArmed("reset","adResetBtn"))return;queueOp({t:"reset"},"전체 초기화 (서버 연결·비밀번호는 유지)");}
 function adDelServer(){
   if(!adArmed("srv","adSrvBtn"))return;
   const c=famCode(); if(!c)return;
@@ -1152,7 +1143,7 @@ function adRender(){
   if($("adWrap").hidden)return;
   $("adState").textContent=CHILD
     ?("마지막 저장 "+new Date(CHILD_AT).toLocaleString("ko-KR")+" · 지시는 아이가 앱을 열 때 적용돼요")
-    :"가족 코드를 넣고 [기록 새로고침]을 누르면 아이 기록이 보여요";
+    :"[기록 새로고침]을 누르면 아이 기록이 보여요";
   const d=CHILD, st=(d&&d.settings)||{};
   let h="";
 
@@ -1288,7 +1279,7 @@ function adRender(){
   h+='<div class="acard full" style="border-color:#6B3A46"><h3 style="color:var(--warn)">위험 구역</h3><div class="aseg">'
     +'<button class="btn sm danger" id="adResetBtn" onclick="adReset()">아이 앱 전체 초기화 (두 번 누르면 실행)</button>'
     +'<button class="btn sm danger" id="adSrvBtn" onclick="adDelServer()">서버에 올라간 기록 지우기 (두 번 누르면 실행)</button></div>'
-    +'<div class="amini">전체 초기화는 아이가 앱을 열 때 실행돼요 — 포인트·스트릭이 모두 사라지니 신중하게! 기록 공유(가족 코드)와 설정 비밀번호는 유지되니 연결은 안 끊겨요. 초기화 전에 [기록 내려받기]로 백업해 두면 아이 폰 [파일 불러오기]로 되돌릴 수 있어요.</div></div>';
+    +'<div class="amini">전체 초기화는 아이가 앱을 열 때 실행돼요 — 포인트·스트릭이 모두 사라지니 신중하게! 서버 연결(자동 저장)과 설정 비밀번호는 유지되니 걱정 마세요. 초기화 전에 [기록 내려받기]로 백업해 두면 아이 폰 [파일 불러오기]로 되돌릴 수 있어요.</div></div>';
 
   $("adBody").innerHTML=h;
 }
@@ -1320,7 +1311,6 @@ function draw(){ drawSum(); drawMap(); drawDetail(); drawCal(); }
   ROOT  = jload(LS.root,null) || ROOT;
   CMDQ  = jload(LS.cmdq,[]);
   $("rootPath").value=ROOT;
-  $("famCode").value=jload(LS.code,"")||"";
   $("rootPath").addEventListener("change",function(){
     ROOT=normRoot(); $("rootPath").value=ROOT; jsave(LS.root,ROOT); toast("폴더 경로를 기억했어요");
   });
