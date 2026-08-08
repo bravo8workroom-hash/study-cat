@@ -2394,7 +2394,9 @@ function mkGo(){
   if(c.stage===2)return mkWrite();
   if(c.done)return mkStage2();
   if(c.slots.some(function(t){return !t;})){toast("단어를 다 놓아 보자!");return;}
-  const mark=c.parts.map(function(t,i){return c.slots[i]===t;});
+  /* 대소문자는 안 따진다 — "Rain, rain, go away." 처럼 같은 낱말이 대소문자만 다르게 두 번 나올 때
+     화면상 같은 문장인데 틀렸다고 나오는 것을 막는다. */
+  const mark=c.parts.map(function(t,i){return String(c.slots[i]).toLowerCase()===String(t).toLowerCase();});
   if(mark.every(Boolean)){
     c.mark=mark;c.done=true;c.ok=true;c.showAns=false;
     paintMake();
