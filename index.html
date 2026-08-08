@@ -1784,7 +1784,7 @@ function wqDue(){const t=todayKey();return Object.keys(S.wq||{}).map(Number).fil
 
 /* ================= 상태 ================= */
 let S;
-function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]},wbase:WORDS_BASE,stage:{passed:{},reviews:[],tries:null},wq:{}};}
+function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]},wbase:WORDS_BASE,stage:{passed:{},reviews:[],tries:null},wq:{},cmdDone:[]};}
 function migrate(){
   if(!S.settings)S.settings={name:"",newPerDay:7};
   if(!S.math)S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};
@@ -1811,6 +1811,7 @@ function migrate(){
   if(!S.settings.load)S.settings.load="normal";
   if(!Array.isArray(S.noteArc))S.noteArc=[];
   if(!S.dev)S.dev={k2:"",unlock:false};
+  if(!Array.isArray(S.cmdDone))S.cmdDone=[];
   Object.keys(S.words||{}).forEach(function(id){var w=S.words[id];if(!w.sp)w.sp=1;if(w.spOk===undefined)w.spOk=0;});
   Object.keys(S.log).forEach(function(k){var l=S.log[k];if(!l.m)l.m=[0,0];if(l.sp===undefined)l.sp=false;if(l.wk===undefined)l.wk=false;if(l.ag===undefined)l.ag=false;if(l.nt===undefined)l.nt=0;});
   /* 단어장 대확장(기본 100→900) 인덱스 시프트 — 불러온 단어는 WORDS_BASE 뒤에 붙기 때문에
@@ -2540,29 +2541,34 @@ function devDiagReset(){
   S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};save();
   toast("진단을 리셋했어요 — 홈의 수학 스트립에서 다시 시작");
 }
+const DEV_SAMPLE_DECK={type:"words",subject:"social",setName:"[샘플] 사회 암기",items:[
+  {front:"조선을 건국한 사람",back:"이성계 (1392년)"},
+  {front:"훈민정음을 만든 왕",back:"세종대왕"},
+  {front:"삼국 통일을 이룬 나라",back:"신라"},
+  {front:"고려를 세운 사람",back:"왕건"},
+  {front:"임진왜란이 일어난 연도",back:"1592년"}
+]};
+const DEV_SAMPLE_SET={type:"quiz",subject:"math",setName:"[샘플] 수학 문제",items:[
+  {question:"3x + 5 = 20일 때 x는?",choices:["3","5","15","25"],answer:1,explanation:"3x = 15 → x = 5",topic:"일차방정식"},
+  {question:"(-4) + 7 = ?",choices:["-11","-3","3","11"],answer:2,explanation:"부호가 다르면 큰 수에서 작은 수를 빼요",topic:"정수 계산"},
+  {question:"2/5를 소수로 나타내면?",choices:["0.2","0.25","0.4","2.5"],answer:2,explanation:"2 ÷ 5 = 0.4",topic:"분수와 소수"},
+  {question:"x - 8 = 4일 때 x는?",choices:["4","8","12","16"],answer:2,explanation:"x = 4 + 8 = 12",topic:"일차방정식"}
+]};
 function devSampleDeck(){
-  try{toast(handleImport({type:"words",subject:"social",setName:"[샘플] 사회 암기",items:[
-    {front:"조선을 건국한 사람",back:"이성계 (1392년)"},
-    {front:"훈민정음을 만든 왕",back:"세종대왕"},
-    {front:"삼국 통일을 이룬 나라",back:"신라"},
-    {front:"고려를 세운 사람",back:"왕건"},
-    {front:"임진왜란이 일어난 연도",back:"1592년"}
-  ]}));}catch(e){toast(e.message);}
+  try{toast(handleImport(DEV_SAMPLE_DECK));}catch(e){toast(e.message);}
   renderDevView();
 }
 function devSampleSet(){
-  try{toast(handleImport({type:"quiz",subject:"math",setName:"[샘플] 수학 문제",items:[
-    {question:"3x + 5 = 20일 때 x는?",choices:["3","5","15","25"],answer:1,explanation:"3x = 15 → x = 5",topic:"일차방정식"},
-    {question:"(-4) + 7 = ?",choices:["-11","-3","3","11"],answer:2,explanation:"부호가 다르면 큰 수에서 작은 수를 빼요",topic:"정수 계산"},
-    {question:"2/5를 소수로 나타내면?",choices:["0.2","0.25","0.4","2.5"],answer:2,explanation:"2 ÷ 5 = 0.4",topic:"분수와 소수"},
-    {question:"x - 8 = 4일 때 x는?",choices:["4","8","12","16"],answer:2,explanation:"x = 4 + 8 = 12",topic:"일차방정식"}
-  ]}));}catch(e){toast(e.message);}
+  try{toast(handleImport(DEV_SAMPLE_SET));}catch(e){toast(e.message);}
   renderDevView();
 }
-function devSampleClear(){
+function sampleClearCore(){
   S.imp.decks=S.imp.decks.filter(function(d){return String(d.name).indexOf("[샘플]")!==0;});
   S.imp.quiz=S.imp.quiz.filter(function(s){return String(s.name).indexOf("[샘플]")!==0;});
   S.imp.log=S.imp.log.filter(function(l){return String(l.name||"").indexOf("[샘플]")!==0;});
+}
+function devSampleClear(){
+  sampleClearCore();
   save();toast("샘플 자료를 지웠어요");
   renderDevView();
 }
@@ -3993,12 +3999,15 @@ function wsClear(){
   }
   wsClearArm=false;S.wrongLog=[];save();renderParent();toast("오답 저장소를 비웠어요");
 }
-function clearImpWords(){
+function impWordsClearCore(){
   S.imp.words=[];
   WORDS.length=WORDS_BASE;
   Object.keys(S.words||{}).forEach(function(k){if(+k>=WORDS_BASE)delete S.words[k];});
   const dl=S.log[todayKey()];
   if(dl&&dl.newIds)dl.newIds=dl.newIds.filter(function(i){return i<WORDS_BASE;});
+}
+function clearImpWords(){
+  impWordsClearCore();
   save();renderParent();toast("불러온 단어를 지웠어요");
 }
 function renderParent(){
@@ -4398,6 +4407,7 @@ function planPull(loud){
   if(loud)toast("계획을 받아오는 중…");
   rpc("catplan_get",{p_code:c}).then(function(rows){
     const r=rows&&rows[0];
+    if(r&&r.doc)applyCmd(r.doc);
     if(!r||!r.doc||!r.doc.plan){calPlanTip("아직 올라온 계획이 없어.");if(loud)toast("아직 올라온 계획이 없어");return;}
     DLPLAN=r.doc;
     try{localStorage.setItem(PLAN_LS,JSON.stringify(r.doc));}catch(e){}
@@ -4408,6 +4418,77 @@ function planPull(loud){
     calPlanTip("연결이 안 됐어. 인터넷을 확인하고 다시 눌러 줘.");
     if(loud)toast("계획을 못 받았어");
   });
+}
+
+/* ── 설계실 원격 지시 ──
+   엄마가 PC 설계실 [관리]에서 보낸 설정·관리 명령이 계획 doc(catstudy_plan)의 cmd.ops 로 내려온다.
+   op.id 로 이중 적용을 막고, 적용한 id 는 S.cmdDone(최근 200개)에 남긴다 —
+   기록 공유(syncPush)로 서버에 올라가면 설계실이 "적용됨"을 확인하고 대기열에서 지운다. */
+function applyCmd(doc){
+  const cmd=doc&&doc.cmd;
+  if(!cmd||!Array.isArray(cmd.ops)||!cmd.ops.length)return;
+  if(!Array.isArray(S.cmdDone))S.cmdDone=[];
+  let done=S.cmdDone.slice(),n=0,didReset=false;
+  cmd.ops.forEach(function(op){
+    if(!op||!op.id||done.indexOf(op.id)>=0)return;
+    let hit=true;
+    try{
+      if(op.t==="set"){
+        if(op.k==="newPerDay"&&[5,7,10].indexOf(op.v)>=0)S.settings.newPerDay=op.v;
+        else if(op.k==="name"&&typeof op.v==="string")S.settings.name=op.v.trim().slice(0,8);
+        else if(op.k==="pin"&&/^[0-9]{4,8}$/.test(String(op.v||"")))S.settings.pin=String(op.v);
+        else if(op.k==="noteStage"&&[1,2,3].indexOf(op.v)>=0)S.settings.noteStage=op.v;
+        else if(op.k==="load"&&["light","normal","more"].indexOf(op.v)>=0)S.settings.load=op.v;
+        else hit=false;
+      }
+      else if(op.t==="exam"){
+        if(!op.on){if(!S.exam)S.exam={on:false,name:"",date:"",end:""};S.exam.on=false;}
+        else if(/^\d{4}-\d{2}-\d{2}$/.test(op.date||"")){
+          S.exam={on:true,name:String(op.name||"").slice(0,20),date:op.date,
+                  end:(op.end&&/^\d{4}-\d{2}-\d{2}$/.test(op.end)&&op.end>=op.date)?op.end:op.date};
+        }else hit=false;
+      }
+      else if(op.t==="wsClear")S.wrongLog=[];
+      else if(op.t==="wrongDel")S.wrongLog=(S.wrongLog||[]).filter(function(y){return y.k!==op.k;});
+      else if(op.t==="deckDel"){if(S.imp&&S.imp.decks)S.imp.decks=S.imp.decks.filter(function(x){return x.id!==op.sid;});}
+      else if(op.t==="quizDel"){if(S.imp&&S.imp.quiz)S.imp.quiz=S.imp.quiz.filter(function(x){return x.id!==op.sid;});}
+      else if(op.t==="impWordsClear")impWordsClearCore();
+      else if(op.t==="import"&&op.data&&op.data.type&&op.data.type!=="export")handleImport(op.data);
+      else if(op.t==="dev"&&op.k==="k2"&&["","eng","math","week","deck","set"].indexOf(op.v)>=0)S.dev.k2=op.v;
+      else if(op.t==="dev"&&op.k==="unlock")S.dev.unlock=!!op.v;
+      else if(op.t==="diagSkip"){S.math.diagDone=true;S.math.level=3;S.math.hist=[];S.math.hi=[];}
+      else if(op.t==="diagReset")S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};
+      else if(op.t==="sampleDeck")handleImport(DEV_SAMPLE_DECK);
+      else if(op.t==="sampleSet")handleImport(DEV_SAMPLE_SET);
+      else if(op.t==="sampleClear")sampleClearCore();
+      else if(op.t==="reset"){
+        /* 원격 초기화 — 기록 공유(가족 코드)와 비밀번호는 유지해 연결이 끊기지 않게 한다 */
+        const keepSync=S.settings.sync,keepPin=S.settings.pin;
+        try{localStorage.removeItem("catstudy");}catch(e){}
+        load();
+        S.settings.sync=keepSync;S.settings.pin=keepPin;
+        didReset=true;
+      }
+      else hit=false;
+    }catch(e){hit=false;}
+    done.push(op.id);
+    if(hit)n++;
+  });
+  S.cmdDone=done.slice(-200);
+  save();
+  if(!n)return;
+  try{
+    renderHome();
+    if(didReset){tab("home");toast("엄마가 기록을 초기화했어");}
+    else toast("엄마가 보낸 설정 "+n+"건을 적용했어");
+  }catch(e){}
+}
+function cmdPull(){
+  if(!syncOn())return;
+  rpc("catplan_get",{p_code:S.settings.sync.code}).then(function(rows){
+    const r=rows&&rows[0];
+    if(r&&r.doc)applyCmd(r.doc);
+  },function(){});
 }
 
 /* ================= 자료 모으기 (사진) ================= */
@@ -4572,6 +4653,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   renderHome();
   setTimeout(function(){shotFlush(false);},1500);
   setTimeout(prefetchPron,600);
+  setTimeout(cmdPull,900);
 });
 </script>
 </body>

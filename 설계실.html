@@ -248,6 +248,40 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
 }
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- 관리 패널 (엄마 모드 · PC) ---------- */
+.ad{position:fixed;inset:0;z-index:60;background:rgba(15,13,28,.74);
+  display:flex;align-items:center;justify-content:center;padding:24px}
+.ad[hidden]{display:none}
+.adPanel{width:min(1000px,96vw);height:min(780px,92vh);display:flex;flex-direction:column;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.adHead{display:flex;align-items:center;gap:10px;padding:13px 20px;
+  border-bottom:1px solid var(--line);background:var(--surf)}
+.adSub{font-size:11.5px;color:var(--mist);margin-top:1px}
+.adBody{flex:1;min-height:0;overflow:auto;padding:16px 20px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;align-content:start}
+.acard{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.acard h3{font-family:var(--mo);font-weight:800;font-size:11px;letter-spacing:1.2px;
+  color:var(--mist);text-transform:uppercase;margin-bottom:8px}
+.acard.full{grid-column:1/-1}
+.aseg{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px;align-items:center}
+.aseg .btn.on{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.alab{font-size:11.5px;color:var(--mist);margin-top:6px}
+.amini{font-size:11px;color:var(--dim);line-height:1.55}
+.arow{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-top:1px dashed #3a3660;font-size:12px}
+.arow .q{flex:1;min-width:0}
+.arow .x{color:var(--mist);font-size:11px;white-space:nowrap}
+.arow button{color:var(--warn);font-size:11px;font-weight:700;flex:none}
+.aq{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:8px;background:#332F57;
+  font-size:11.5px;margin-bottom:5px}
+.aq .q{flex:1;min-width:0}
+.aq button{color:var(--warn);font-size:11px;font-weight:700}
+.adtile{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:6px 11px;margin:0 6px 6px 0}
+.adtile s{display:block;text-decoration:none;font-size:10px;color:var(--mist)}
+.adtile b{font-family:var(--mo);font-size:14.5px;font-variant-numeric:tabular-nums}
+.ainp{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+  padding:6px 10px;font-size:12px;color:var(--paper);width:138px;color-scheme:dark}
+
 /* 좁은 화면에서는 한 화면 고정을 풀고 그냥 위에서 아래로 쌓는다 */
 @media (max-width:1180px),(max-height:620px){
   body{height:auto;overflow:visible;display:block}
@@ -261,7 +295,7 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
   body{height:auto;overflow:visible;display:block;background:#fff;color:#000}
   .wrap{display:block}
   .col{display:block}
-  .bar,.side,.mapzone,.actbar,.toast,.calwrap .btn{display:none}
+  .bar,.side,.mapzone,.actbar,.toast,.ad,.calwrap .btn{display:none}
   .calwrap{border:none;background:#fff;display:block}
   .calscroll{overflow:visible;padding:0}
   .sumbar{border:none;padding:0 0 10px}
@@ -303,6 +337,7 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
   </label>
   <button class="btn" onclick="pushPlan()">앱으로 보내기</button>
   <button class="btn" onclick="pullDone()">완료 받기</button>
+  <button class="btn go" onclick="adOpen()">관리</button>
 </div>
 
 <div class="sumbar" id="sumbar"></div>
@@ -341,6 +376,23 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
   </aside>
 </div>
 
+<!-- ============ 관리 패널 (엄마 모드 · 설정 · 개발자 메뉴를 PC에서) ============ -->
+<div class="ad" id="adWrap" hidden>
+  <div class="adPanel">
+    <div class="adHead">
+      <div>
+        <h2 style="margin:0">아이 앱 관리</h2>
+        <div class="adSub" id="adState">가족 코드를 넣고 [기록 새로고침]을 누르세요</div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="btn sm" onclick="adRefresh(true)">기록 새로고침</button>
+      <button class="btn sm" onclick="adClose()">닫기 ✕</button>
+    </div>
+    <div class="adBody" id="adBody"></div>
+    <input type="file" id="adImpFile" accept=".json,application/json" hidden onchange="adImport(this)">
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="curriculum.js"></script>
@@ -350,7 +402,7 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
    ========================================================== */
 const $ = function(id){ return document.getElementById(id); };
 const DAYN = ["일","월","화","수","목","금","토"];
-const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", code:"catstudy_fam" };
+const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", code:"catstudy_fam", cmdq:"catstudy_cmdq" };
 
 let PLAN = {};        // { "2026-08": [ {i, node, date, s, done} ] }
 let ROOT = "F:/projects/study-cat";
@@ -880,12 +932,16 @@ function planNames(){
   }); }); });
   return n;
 }
+/* 계획과 관리 지시(cmd)는 같은 doc 으로 올라간다 — 어느 쪽을 보내든 둘 다 실어서
+   먼저 보낸 쪽이 지워지지 않게 한다 */
+function planDoc(){
+  return { kind:"catstudy-plan", version:1, savedAt:new Date().toISOString(),
+           plan:PLAN, extra:EXTRA, names:planNames(), cmd:{ops:CMDQ} };
+}
 function pushPlan(){
   const c=famCode(); if(!c) return;
-  const doc={ kind:"catstudy-plan", version:1, savedAt:new Date().toISOString(),
-              plan:PLAN, extra:EXTRA, names:planNames() };
   toast("계획을 올리는 중…");
-  rpc("catplan_put",{p_code:c,p_doc:doc}).then(function(){
+  rpc("catplan_put",{p_code:c,p_doc:planDoc()}).then(function(){
     toast("보냈어요 — 아이 앱 달력에서 [계획 새로 받기]");
   },function(e){
     toast("못 보냈어요 ("+e.message+") — supabase-자료.sql 을 Run 했는지 확인하세요");
@@ -909,6 +965,332 @@ function pullDone(){
     jsave(LS.plan,PLAN); draw();
     toast(hit?(hit+"개를 맞췄어요"):"바뀐 게 없어요");
   },function(e){ toast("못 받았어요 ("+e.message+")"); });
+}
+
+/* ==========================================================
+   관리 패널 — 앱의 설정·엄마 모드·개발자 메뉴를 PC에서 원격 조작
+   지시(op)는 계획 doc 의 cmd.ops 로 내려가고, 아이가 앱을 열 때 적용된다.
+   적용 확인은 아이 기록(catstudy_state)의 cmdDone 목록으로 돌아온다.
+   ========================================================== */
+let CMDQ=[], CHILD=null, CHILD_AT="", adArm={}, cmdTimer=null;
+let AD_WRONG=[], AD_DECKS=[], AD_SETS=[];
+const AD_SUBJ={social:"사회",science:"과학",history:"역사",korean:"국어",math:"수학",english:"영어",etc:"암기"};
+const AD_MOOD={easy:"쉬웠어",good:"딱 좋아",hard:"어려웠어"};
+const AD_NOTE=["","전부 써 줄게","반은 네가","거의 혼자"];
+const AD_PROMPTS=[
+ ["오답 변형 문제 만들기","첨부한 파일은 아이의 오답 기록이야. 많이 틀린 유형 순서로, 유형당 변형 문제 3개씩 만들어줘. 해설은 중1이 혼자 읽고 이해할 수 있는 말로 짧게. 앱 불러오기 형식(type:\"quiz\") JSON 파일로 만들어줘."],
+ ["다음 단어 세트 만들기","우리 학습 앱에 넣을 단어 50개를 만들어줘. 첨부한 기록에서 이미 배운 단어는 빼고, 초등 필수 단어 순서로. 각 단어에 뜻·쉬운 예문·해석 포함. 앱 불러오기 형식(type:\"words\") JSON 파일로."],
+ ["교과서 사진 → 암기 세트","첨부한 사진은 [과목·단원] 교과서야. 시험에 나올 핵심을 암기 카드 20~30장으로 만들어줘(front에 용어나 질문, back에 답, 필요하면 example에 한 줄 설명). 앱 불러오기 형식으로: {type:\"words\", subject:\"social\"(사회)·\"science\"(과학)·\"history\"(역사) 중 하나, setName:\"사회 3단원\", items:[{front,back,example}]}. subject를 꼭 넣어줘 — 영어 단어장과 섞이지 않게."],
+ ["오답노트 채워 주기","첨부한 파일은 아이의 오답 기록이야. wrongAnswers에서 자주 틀린 문제 8개를 골라 오답노트를 채워줘. 각 문제마다 why(왜 틀렸을까) · concept(꼭 기억할 것) · similar(비슷한 문제) 를 한 문장씩, 중1이 혼자 읽고 이해할 말로. 마지막에 coach로 \"노트는 이렇게 만드는 거야\"로 시작하는 코칭 한 줄. 형식: {type:\"notes\", items:[{question:(파일의 question 그대로), why, concept, similar, coach}]} JSON 파일로."],
+ ["주간 리포트 코멘트","첨부한 파일의 report와 weekStats를 보고, 엄마가 아이에게 그대로 읽어 줄 코멘트를 3~4줄 써 줘. 과장 없이 담백하게(\"천재네\" 금지, \"지난주보다 2개 늘었네\" 방식). 마지막 줄에 다음 주에 뭘 조금 더 하면 좋을지 한 가지만 제안해 줘."],
+ ["문제집 사진 → 유사 문제","첨부한 사진은 [과목·단원] 문제집이야. 각 문제와 같은 유형으로 숫자와 상황만 바꾼 문제를 3개씩 만들어줘. 난이도는 원본과 같거나 살짝 쉽게, 해설 포함. 앱 불러오기 형식(type:\"quiz\") JSON 파일로."]
+];
+
+function adKey(off){const d=new Date();d.setDate(d.getDate()-(off||0));
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function adWeek(doc){
+  let sess=0,days=0,eq=0,ec=0,mq=0,mok=0,n=0;
+  for(let i=0;i<7;i++){
+    const l=(doc.log||{})[adKey(i)]; if(!l)continue;
+    const s=l.s||[],q=l.quiz||[0,0],m=l.m||[0,0];
+    sess+=s.filter(Boolean).length; if(s.some(Boolean))days++;
+    ec+=q[0];eq+=q[1];mok+=m[0];mq+=m[1];n+=l.nt||0;
+  }
+  return {sess:sess,days:days,notes:n,acc:eq?Math.round(ec/eq*100):null,macc:mq?Math.round(mok/mq*100):null};
+}
+
+function adOpen(){ $("adWrap").hidden=false; adRender(); adRefresh(false); }
+function adClose(){ $("adWrap").hidden=true; }
+function adRefresh(loud){
+  const c=famCode(); if(!c)return;
+  if(loud)toast("아이 기록을 받아오는 중…");
+  rpc("catstudy_get",{p_code:c}).then(function(rows){
+    const r=rows&&rows[0];
+    if(!r||!r.doc){
+      CHILD=null;CHILD_AT="";adRender();
+      $("adState").textContent="이 코드로 올라온 기록이 아직 없어요 — 아이 앱 [엄마 모드 > 기록 공유]가 켜져 있는지 확인";
+      return;
+    }
+    CHILD=r.doc;CHILD_AT=r.updated_at;
+    const done=CHILD.cmdDone||[],before=CMDQ.length;
+    CMDQ=CMDQ.filter(function(o){return done.indexOf(o.id)<0;});
+    if(CMDQ.length!==before){jsave(LS.cmdq,CMDQ);if(loud)toast((before-CMDQ.length)+"건이 아이 앱에 적용된 걸 확인했어요");}
+    adRender();
+  },function(){if(loud)toast("불러오기 실패 — 인터넷을 확인하세요");});
+}
+
+/* ── 지시 큐: 바꾸는 즉시 큐에 쌓고 잠깐 뒤 자동 전송 ── */
+function queueOp(op,label){
+  const c=famCode(); if(!c)return;
+  op.id="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  op.lbl=label;
+  CMDQ.push(op); jsave(LS.cmdq,CMDQ);
+  adRender();
+  clearTimeout(cmdTimer); cmdTimer=setTimeout(adPush,700);
+}
+function adPush(){
+  const c=famCode(); if(!c)return;
+  rpc("catplan_put",{p_code:c,p_doc:planDoc()}).then(function(){
+    toast("보냈어요 — 아이가 앱을 열면 적용돼요");
+  },function(e){toast("전송 실패 ("+e.message+") — [다시 보내기]를 눌러 주세요");});
+}
+function adCancel(id){
+  CMDQ=CMDQ.filter(function(o){return o.id!==id;});
+  jsave(LS.cmdq,CMDQ); adRender();
+  clearTimeout(cmdTimer); cmdTimer=setTimeout(adPush,400); /* 서버 doc 에서도 빼야 해서 재전송 */
+}
+function adArmed(key,btnId){
+  if(adArm[key]){adArm[key]=false;return true;}
+  adArm[key]=true;
+  const b=$(btnId),orig=b.textContent;
+  b.textContent="정말요? 한 번 더 누르면 실행돼요";
+  setTimeout(function(){adArm[key]=false;const x=$(btnId);if(x)x.textContent=orig;},4000);
+  return false;
+}
+
+/* ── 개별 동작 ── */
+function adSet(k,v,label){queueOp({t:"set",k:k,v:v},label);}
+function adDev(k,v,label){queueOp({t:"dev",k:k,v:v},label);}
+function adSaveName(){
+  const v=($("adName").value||"").trim();
+  if(!v){toast("이름을 넣어 주세요");return;}
+  adSet("name",v.slice(0,8),"이름: "+v.slice(0,8));
+}
+function adSavePin(){
+  const v=($("adPin").value||"").trim();
+  if(!/^[0-9]{4,8}$/.test(v)){toast("비밀번호는 숫자 4~8자리로");return;}
+  adSet("pin",v,"설정 비밀번호 변경");
+}
+function adExam(on){
+  const nm=($("adExName").value||"").trim(),st=($("adExDate").value||"").trim(),en=($("adExEnd").value||"").trim();
+  if(on&&!st){toast("시험 첫날을 골라 주세요");return;}
+  if(on&&en&&en<st){toast("마지막 날이 첫날보다 빨라요");return;}
+  queueOp({t:"exam",on:!!on,name:nm,date:st,end:en||st},
+    on?("시험 모드 켜기: "+(nm||"시험")+" "+st):"시험 모드 끄기");
+}
+function adWrongDel(i){const e=AD_WRONG[i];if(!e)return;queueOp({t:"wrongDel",k:e.k},"오답 지우기: "+String(e.q).slice(0,16));}
+function adWsClear(){if(!adArmed("ws","adWsBtn"))return;queueOp({t:"wsClear"},"오답 저장소 비우기");}
+function adDeckDel(i){const x=AD_DECKS[i];if(!x)return;queueOp({t:"deckDel",sid:x.id},"암기 세트 지우기: "+x.name);}
+function adQuizDel(i){const x=AD_SETS[i];if(!x)return;queueOp({t:"quizDel",sid:x.id},"문제 세트 지우기: "+x.name);}
+function adImpWordsClear(){queueOp({t:"impWordsClear"},"불러온 단어 전부 지우기");}
+function adReset(){if(!adArmed("reset","adResetBtn"))return;queueOp({t:"reset"},"전체 초기화 (기록 공유·비밀번호는 유지)");}
+function adDelServer(){
+  if(!adArmed("srv","adSrvBtn"))return;
+  const c=famCode(); if(!c)return;
+  rpc("catstudy_del",{p_code:c}).then(function(){
+    CHILD=null;CHILD_AT="";adRender();
+    toast("서버 기록을 지웠어요 (아이 폰 안의 기록은 그대로예요)");
+  },function(){toast("삭제 실패 — 인터넷을 확인하세요");});
+}
+function adImport(el){
+  const f=el.files&&el.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=function(){
+    el.value="";
+    let d;
+    try{d=JSON.parse(r.result);}catch(e){toast("JSON 파일이 아니에요");return;}
+    if(!d||["words","quiz","notes"].indexOf(d.type)<0){toast("넣을 수 있는 형식은 words·quiz·notes 예요 (복구 파일은 아이 폰에서 불러오세요)");return;}
+    if(JSON.stringify(d).length>400000){toast("파일이 너무 커요 (400KB 이하로 나눠 주세요)");return;}
+    queueOp({t:"import",data:d},"파일 넣기: "+(d.setName||d.type)+" ("+((d.items||[]).length)+"개)");
+  };
+  r.readAsText(f);
+}
+function adExport(){
+  if(!CHILD){toast("먼저 [기록 새로고침]으로 아이 기록을 받아오세요");return;}
+  const wrong=(CHILD.wrongLog||[]).slice().sort(function(a,b){return b.n-a.n;}).map(function(e){
+    return {question:e.q,chosenAnswer:e.chosen,correctAnswer:e.a,subject:e.subject,topic:e.topic,wrongCount:e.n,dates:e.dates,
+      note:e.note?{why:e.note.why||"",concept:e.note.concept||"",similar:e.note.similar||"",writtenByChild:e.note.mine||{},done:e.note.done||null}:null};
+  });
+  const wk=adWeek(CHILD);
+  const data={type:"export",exportedAt:adKey(0),app:"공부하는 고양이 (설계실 내보내기)",
+    child:(CHILD.settings&&CHILD.settings.name)||"",
+    wrongAnswers:wrong,
+    weekStats:{sessionsDone:wk.sess,streak:CHILD.streak||0,points:CHILD.points||0,
+      accuracy:{english:wk.acc===null?null:+(wk.acc/100).toFixed(2),math:wk.macc===null?null:+(wk.macc/100).toFixed(2)},
+      notesWritten:wk.notes},
+    feedback:CHILD.fb||[],
+    raw:CHILD};
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));
+  a.download="export-"+adKey(0)+".json"; a.click();
+  toast("내려받았어요 — Claude에게 주거나 백업으로 보관하세요");
+}
+function adCopy(t,msg){
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(function(){toast(msg||"복사했어요");},function(){toast("복사가 안 됐어요");});
+  else toast("복사가 안 됐어요");
+}
+function adCopyPrompt(i){adCopy(AD_PROMPTS[i][1],"요청문을 복사했어요");}
+function adCopyFb(){
+  const fb=(CHILD&&CHILD.fb)||[];
+  if(!fb.length){toast("피드백이 없어요");return;}
+  const txt="[공부하는 고양이] 아이 피드백 "+fb.length+"개\n\n"+fb.slice().reverse().map(function(e){
+    const pick=[e.mood?(AD_MOOD[e.mood]||e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
+    return "- "+(e.d||"")+" · "+((e.ctx&&e.ctx.title)||"")+"\n  고른 것: "+(pick||"없음")+(e.txt?"\n  쓴 말: "+e.txt:"");
+  }).join("\n");
+  adCopy(txt,"피드백을 복사했어요");
+}
+
+/* ── 대기 중 지시를 반영한 현재 값 (마지막 지시 > 아이 기록 순) ── */
+function pendVal(k){
+  for(let i=CMDQ.length-1;i>=0;i--)if(CMDQ[i].t==="set"&&CMDQ[i].k===k)return CMDQ[i].v;
+  return CHILD&&CHILD.settings?CHILD.settings[k]:undefined;
+}
+function pendDev(k){
+  for(let i=CMDQ.length-1;i>=0;i--)if(CMDQ[i].t==="dev"&&CMDQ[i].k===k)return CMDQ[i].v;
+  return CHILD&&CHILD.dev?CHILD.dev[k]:undefined;
+}
+
+/* ── 그리기 ── */
+function adTile(k,v){return '<div class="adtile"><s>'+k+'</s><b>'+v+'</b></div>';}
+function segBtns(list){
+  return '<div class="aseg">'+list.map(function(p){
+    return '<button class="btn sm'+(p.on?" on":"")+'" onclick="'+p.click+'">'+p.label+'</button>';
+  }).join("")+'</div>';
+}
+function adRender(){
+  if($("adWrap").hidden)return;
+  $("adState").textContent=CHILD
+    ?("마지막 저장 "+new Date(CHILD_AT).toLocaleString("ko-KR")+" · 지시는 아이가 앱을 열 때 적용돼요")
+    :"가족 코드를 넣고 [기록 새로고침]을 누르면 아이 기록이 보여요";
+  const d=CHILD, st=(d&&d.settings)||{};
+  let h="";
+
+  /* 요약 */
+  h+='<div class="acard full"><h3>아이 상태</h3>';
+  if(d){
+    const wk=adWeek(d);
+    h+=adTile("이름",esc(st.name||"—"))+adTile("포인트",(d.points||0)+"P")+adTile("연속",(d.streak||0)+"일")
+      +adTile("이번 주",wk.days+"일 · "+wk.sess+"세션")
+      +adTile("영어 정답률",wk.acc===null?"—":wk.acc+"%")
+      +adTile("수학 정답률",wk.macc===null?"—":wk.macc+"%")
+      +adTile("오답 저장소",(d.wrongLog||[]).length+"문제")
+      +adTile("주간 오답노트",wk.notes+"장");
+  }else h+='<div class="amini">아직 기록을 못 받았어요. 지시 보내기는 기록 없이도 돼요 — 아이가 앱을 열 때 적용됩니다.</div>';
+  h+='</div>';
+
+  /* 대기 중 지시 */
+  h+='<div class="acard full"><h3>보낸 지시 · '+CMDQ.length+'건 대기</h3>';
+  if(!CMDQ.length)h+='<div class="amini">대기 중인 지시가 없어요. 아래에서 바꾸면 자동으로 전송됩니다.</div>';
+  else{
+    CMDQ.forEach(function(o){
+      h+='<div class="aq"><span class="q">'+esc(o.lbl||o.t)+'</span>'
+        +'<button onclick="adCancel(\''+o.id+'\')">취소</button></div>';
+    });
+    h+='<div class="aseg" style="margin-top:6px"><button class="btn sm" onclick="adPush()">다시 보내기</button>'
+      +'<button class="btn sm" onclick="adRefresh(true)">적용 확인</button></div>'
+      +'<div class="amini">아이가 앱을 열면 적용돼요. [적용 확인]을 누르면 끝난 지시가 목록에서 빠집니다.</div>';
+  }
+  h+='</div>';
+
+  /* 학습 설정 */
+  h+='<div class="acard"><h3>학습 설정</h3>';
+  h+='<div class="alab">하루 새 단어</div>'+segBtns([5,7,10].map(function(n){
+    return {on:pendVal("newPerDay")===n,label:n+"개",click:"adSet('newPerDay',"+n+",'하루 새 단어 "+n+"개')"};}));
+  h+='<div class="alab">오답노트 넘기기 단계</div>'+segBtns([1,2,3].map(function(n){
+    return {on:(pendVal("noteStage")||(d?1:0))===n,label:AD_NOTE[n],click:"adSet('noteStage',"+n+",'오답노트 단계: "+AD_NOTE[n]+"')"};}));
+  h+='<div class="alab">하루 분량</div>'+segBtns([["light","적게"],["normal","보통"],["more","많이"]].map(function(p){
+    return {on:(pendVal("load")||(d?"normal":""))===p[0],label:p[1],click:"adSet('load','"+p[0]+"','하루 분량: "+p[1]+"')"};}));
+  h+='<div class="alab">이름 · 설정 비밀번호</div>'
+    +'<div class="aseg"><input class="ainp" id="adName" maxlength="8" placeholder="이름" value="'+esc(st.name||"")+'">'
+    +'<button class="btn sm" onclick="adSaveName()">이름 저장</button></div>'
+    +'<div class="aseg"><input class="ainp" id="adPin" maxlength="8" placeholder="비밀번호 (숫자 4~8)">'
+    +'<button class="btn sm" onclick="adSavePin()">비밀번호 변경</button></div>';
+  h+='</div>';
+
+  /* 시험 모드 */
+  const ex=(d&&d.exam)||{};
+  h+='<div class="acard"><h3>시험 모드</h3>'
+    +'<div class="amini">'+(ex.on?("켜짐 · "+esc(ex.name||"시험")+" · "+esc(ex.date||"")+(ex.end&&ex.end!==ex.date?" ~ "+esc(ex.end):"")):"꺼져 있어요")+'</div>'
+    +'<div class="aseg" style="margin-top:8px"><input class="ainp" id="adExName" maxlength="20" placeholder="시험 이름" value="'+esc(ex.name||"")+'"></div>'
+    +'<div class="aseg"><input class="ainp" type="date" id="adExDate" value="'+esc(ex.date||"")+'">'
+    +'<input class="ainp" type="date" id="adExEnd" value="'+esc(ex.end||"")+'"></div>'
+    +'<div class="amini">왼쪽=첫날 · 오른쪽=마지막 날 (하루짜리면 같게 두세요)</div>'
+    +'<div class="aseg"><button class="btn sm go" onclick="adExam(true)">켜기</button>'
+    +'<button class="btn sm" onclick="adExam(false)">끄기</button></div>'
+    +'<div class="amini">켜면 아이 홈에 D-day가 뜨고, D-21부터 세션 2가 암기 → 유사 문제 → 오답 순으로 바뀝니다.</div></div>';
+
+  /* Claude와 파일 주고받기 */
+  h+='<div class="acard"><h3>Claude와 파일 주고받기</h3>'
+    +'<div class="aseg"><button class="btn sm" onclick="adExport()">기록 내려받기 (JSON)</button>'
+    +'<button class="btn sm go" onclick="$(\'adImpFile\').click()">파일 넣기 (앱으로 전송)</button></div>'
+    +'<div class="amini">내려받은 기록을 Claude에게 주면 문제·단어 세트를 만들어 줘요. 받은 JSON을 [파일 넣기] 하면 아이가 앱을 열 때 들어갑니다 (words·quiz·notes 형식).</div>'
+    +'<details style="margin-top:8px"><summary class="amini" style="cursor:pointer">Claude에게 붙여 쓸 요청문 6종</summary>'
+    +'<div class="aseg" style="margin-top:6px">'
+    +AD_PROMPTS.map(function(p,i){return '<button class="btn sm" onclick="adCopyPrompt('+i+')">📋 '+p[0]+'</button>';}).join("")
+    +'</div></details></div>';
+
+  /* 오답 저장소 */
+  AD_WRONG=d?(d.wrongLog||[]).slice().sort(function(a,b){return b.n-a.n;}):[];
+  h+='<div class="acard full"><h3>오답 저장소 · '+AD_WRONG.length+'문제</h3>';
+  if(!d)h+='<div class="amini">[기록 새로고침]으로 받아오면 보여요.</div>';
+  else if(!AD_WRONG.length)h+='<div class="amini">모인 오답이 없어요.</div>';
+  else{
+    AD_WRONG.slice(0,30).forEach(function(e,i){
+      h+='<div class="arow"><span class="q">'+esc(e.q)+' → <b style="color:var(--ok)">'+esc(e.a)+'</b>'
+        +(e.chosen?' <span class="x">(고른 답 '+esc(e.chosen)+')</span>':"")+'</span>'
+        +'<span class="x">'+esc(e.topic||AD_SUBJ[e.subject]||"")+' · '+(e.n||1)+'번</span>'
+        +'<button onclick="adWrongDel('+i+')">✕ 지우기</button></div>';
+    });
+    if(AD_WRONG.length>30)h+='<div class="amini" style="margin-top:4px">…외 '+(AD_WRONG.length-30)+'문제 (내려받기에는 전부 담겨요)</div>';
+    h+='<div class="aseg" style="margin-top:8px"><button class="btn sm danger" id="adWsBtn" onclick="adWsClear()">오답 저장소 비우기 (두 번 누르면 실행)</button></div>';
+  }
+  h+='</div>';
+
+  /* 불러온 세트 */
+  AD_DECKS=(d&&d.imp&&d.imp.decks)||[]; AD_SETS=(d&&d.imp&&d.imp.quiz)||[];
+  const wcount=(d&&d.imp&&d.imp.words&&d.imp.words.length)||0;
+  h+='<div class="acard"><h3>불러온 세트</h3>';
+  if(!d)h+='<div class="amini">[기록 새로고침]으로 받아오면 보여요.</div>';
+  else if(!AD_DECKS.length&&!AD_SETS.length&&!wcount)h+='<div class="amini">불러온 세트가 없어요.</div>';
+  else{
+    AD_DECKS.forEach(function(x,i){
+      h+='<div class="arow"><span class="q">'+esc(x.name)+'</span><span class="x">'+(AD_SUBJ[x.subject]||"암기")+' '+x.cards.length+'장</span><button onclick="adDeckDel('+i+')">✕</button></div>';});
+    AD_SETS.forEach(function(x,i){
+      h+='<div class="arow"><span class="q">'+esc(x.name)+'</span><span class="x">'+x.items.length+'문제'+(x.done?" · 완료":"")+'</span><button onclick="adQuizDel('+i+')">✕</button></div>';});
+    if(wcount)h+='<div class="arow"><span class="q">불러온 단어</span><span class="x">'+wcount+'개</span><button onclick="adImpWordsClear()">✕ 전부</button></div>';
+  }
+  h+='</div>';
+
+  /* 아이 피드백 */
+  const fb=(d&&d.fb)||[];
+  h+='<div class="acard"><h3>아이 피드백 · '+fb.length+'개</h3>';
+  if(!fb.length)h+='<div class="amini">아직 남긴 말이 없어요. 학습을 마친 화면에서 남길 수 있어요.</div>';
+  else{
+    fb.slice(-8).reverse().forEach(function(e){
+      const pick=[e.mood?(AD_MOOD[e.mood]||e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
+      h+='<div class="arow"><span class="q">'+(pick?'<b style="color:var(--orange)">'+esc(pick)+'</b> ':"")+esc(e.txt||"")+'</span><span class="x">'+esc(e.d||"")+'</span></div>';
+    });
+    h+='<div class="aseg" style="margin-top:8px"><button class="btn sm" onclick="adCopyFb()">전체 복사</button></div>';
+  }
+  h+='</div>';
+
+  /* 개발자 메뉴 */
+  h+='<div class="acard full"><h3>🛠 개발자 메뉴 (아이 폰에 적용)</h3>';
+  h+='<div class="alab">세션 2 강제 전환 (요일 무시)</div>'
+    +segBtns([["","자동(요일)"],["eng","영어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"]].map(function(p){
+      return {on:(pendDev("k2")||"")===p[0]&&!!d,label:p[1],click:"adDev('k2','"+p[0]+"','세션2 강제: "+p[1]+"')"};}));
+  h+='<div class="alab">세션 순서 잠금 (1→2→3)</div>'
+    +segBtns([[false,"평소대로 잠금"],[true,"잠금 해제"]].map(function(p){
+      return {on:!!pendDev("unlock")===p[0]&&!!d,label:p[1],click:"adDev('unlock',"+p[0]+",'순서 잠금: "+p[1]+"')"};}));
+  h+='<div class="alab">수학 진단 · 샘플 자료</div><div class="aseg">'
+    +'<button class="btn sm" onclick="queueOp({t:\'diagSkip\'},\'수학 진단 건너뛰기 (3단계로)\')">진단 건너뛰기</button>'
+    +'<button class="btn sm" onclick="queueOp({t:\'diagReset\'},\'수학 진단 다시 하기\')">진단 리셋</button>'
+    +'<button class="btn sm" onclick="queueOp({t:\'sampleDeck\'},\'[샘플] 사회 암기 세트 넣기\')">샘플 암기 세트</button>'
+    +'<button class="btn sm" onclick="queueOp({t:\'sampleSet\'},\'[샘플] 수학 문제 세트 넣기\')">샘플 문제 세트</button>'
+    +'<button class="btn sm" onclick="queueOp({t:\'sampleClear\'},\'샘플 자료만 지우기\')">샘플만 지우기</button></div>';
+  h+='<div class="alab">학습 내용 열람 · 화면 확인</div><div class="aseg">'
+    +'<button class="btn sm go" onclick="window.open(\'index.html\',\'_blank\')">아이 앱 PC 미리보기 열기</button></div>'
+    +'<div class="amini">미리보기는 이 컴퓨터에만 저장되는 별도 기록이라 마음껏 눌러 봐도 돼요. 설정(비밀번호 000088) → 개발자 메뉴 [학습 내용 열람]에서 단어·수학·주간 복습 문제를 화면 그대로 볼 수 있어요.</div>';
+  h+='</div>';
+
+  /* 위험 구역 */
+  h+='<div class="acard full" style="border-color:#6B3A46"><h3 style="color:var(--warn)">위험 구역</h3><div class="aseg">'
+    +'<button class="btn sm danger" id="adResetBtn" onclick="adReset()">아이 앱 전체 초기화 (두 번 누르면 실행)</button>'
+    +'<button class="btn sm danger" id="adSrvBtn" onclick="adDelServer()">서버에 올라간 기록 지우기 (두 번 누르면 실행)</button></div>'
+    +'<div class="amini">전체 초기화는 아이가 앱을 열 때 실행돼요 — 포인트·스트릭이 모두 사라지니 신중하게! 기록 공유(가족 코드)와 설정 비밀번호는 유지되니 연결은 안 끊겨요. 초기화 전에 [기록 내려받기]로 백업해 두면 아이 폰 [파일 불러오기]로 되돌릴 수 있어요.</div></div>';
+
+  $("adBody").innerHTML=h;
 }
 
 /* ==========================================================
@@ -936,6 +1318,7 @@ function draw(){ drawSum(); drawMap(); drawDetail(); drawCal(); }
   UI    = jload(LS.ui,{open:{},sel:null});
   if(!UI.open) UI.open={};
   ROOT  = jload(LS.root,null) || ROOT;
+  CMDQ  = jload(LS.cmdq,[]);
   $("rootPath").value=ROOT;
   $("famCode").value=jload(LS.code,"")||"";
   $("rootPath").addEventListener("change",function(){
