@@ -99,6 +99,16 @@ header{display:flex;justify-content:space-between;align-items:center;padding:22p
 .face .ex{font-size:15px;color:var(--slate);text-align:center;line-height:1.55;font-weight:600}
 .face .hintt{font-size:11.5px;color:var(--mist);font-weight:600;position:absolute;bottom:18px}
 .ipa{font-size:16px;font-weight:600;color:var(--mist);letter-spacing:.2px;min-height:20px}
+.iptips{margin:18px 2px 0}
+.iptt{font-size:12px;font-weight:700;color:var(--cream);margin:0 2px 8px}
+.iptt span{color:var(--mist);font-weight:600}
+.iptip{display:flex;gap:10px;align-items:baseline;background:var(--slate);color:var(--paper);
+  border-radius:16px;padding:10px 13px;margin-bottom:7px;font-size:13px;font-weight:600;line-height:1.55}
+.iptip .sym{flex:none;min-width:36px;text-align:center;background:var(--cream);color:var(--ink);
+  border-radius:11px;padding:4px 6px;font-size:16px;font-weight:800}
+.iptip .snd{color:var(--orange);font-weight:800;margin-right:3px}
+.iptip.ph{display:block;background:transparent;border:1.6px solid var(--slate)}
+.iptip.ph b{color:var(--orange);font-weight:800;font-size:14px}
 .spk{width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--cream);font-size:19px}
 .face img.catimg{height:74px;position:absolute;top:18px;right:22px;opacity:.95}
 .btnrow{display:flex;gap:10px;margin-top:6px}
@@ -133,6 +143,27 @@ header{display:flex;justify-content:space-between;align-items:center;padding:22p
 .bigpoint small{font-size:16px;color:var(--mist)}
 @keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
 .pop{animation:pop .5s ease}
+/* ---------- 피드백 (선택) ---------- */
+.fbwrap{margin-top:16px;text-align:left}
+.fbopen{width:100%;padding:14px;border-radius:20px;background:none;border:1.6px solid var(--slate);
+  color:var(--paper);font-size:14px;font-weight:700;font-family:inherit}
+.fbopen small{font-weight:600;color:var(--mist)}
+.fbcard{background:var(--paper);color:var(--ink);border-radius:26px 22px 28px 22px;padding:18px 16px}
+.fbcard .q{font-size:14.5px;font-weight:800;line-height:1.5}
+.fbcard .q small{display:block;font-size:12px;font-weight:600;color:var(--mist);margin-top:4px}
+.fbcard .segs{margin-top:11px}
+.fbtags{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.fbtag{border-radius:999px;padding:10px 13px;font-size:12.5px;font-weight:700;background:none;
+  border:1.6px solid #E4E2EE;color:var(--slate);font-family:inherit}
+.fbtag.on{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.fbcard textarea{width:100%;margin-top:11px;border:1.6px solid #E4E2EE;border-radius:16px;padding:11px 12px;
+  min-height:76px;resize:none;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);line-height:1.6}
+.fbcard textarea::placeholder{color:#B9B6C8;font-weight:600}
+.fbrow{display:flex;gap:8px;margin-top:11px}
+.fbrow button{flex:1;padding:14px;border-radius:16px;font-size:14px;font-weight:800;font-family:inherit;
+  border:1.6px solid #E4E2EE;background:none;color:var(--slate)}
+.fbrow button.o{background:var(--orange);border-color:var(--orange);color:var(--ink)}
+.fbthx{font-size:13.5px;font-weight:700;color:var(--cream);text-align:center;line-height:1.6;padding:8px 4px}
 
 /* ---------- 단어장/기록/설정 ---------- */
 .chiprow{display:flex;gap:8px;overflow-x:auto;padding:2px;margin-bottom:14px}
@@ -220,6 +251,21 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
 .tile.del{background:transparent;border:1.6px solid var(--slate);color:var(--paper);font-size:18px}
 .spinput{width:100%;border:none;border-radius:20px;padding:16px;font-size:26px;font-weight:800;text-align:center;
   font-family:inherit;letter-spacing:3px;color:var(--ink)}
+/* 문장 만들기 — 낱말 단위라 글자 타일보다 넓게 */
+.wslot{min-width:54px;height:48px;padding:0 12px;border-radius:14px;background:rgba(253,254,255,.1);border:1.6px solid rgba(253,254,255,.22);
+  display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--paper)}
+.wslot.empty{color:var(--mist)}
+.wslot.ok{background:var(--orange);color:var(--ink);border-color:transparent}
+.mkdir{text-align:center;color:var(--cream);font-size:14.5px;font-weight:700;line-height:1.5;margin:20px 0 2px}
+#mkLad{margin-top:30px}
+.wtile{height:48px;padding:0 15px;border-radius:14px;background:var(--paper);color:var(--ink);font-size:17px;font-weight:800;transition:transform .1s}
+.wtile:active{transform:scale(.94)}
+.wtile.used{opacity:.22;pointer-events:none}
+.wtile.del{background:transparent;border:1.6px solid var(--slate);color:var(--paper);font-size:16px}
+.mkinput{letter-spacing:0;font-size:19px;text-align:left}
+.mkchk{line-height:1.7}
+.mkchk .note{display:block;margin-top:6px;color:var(--mist);font-weight:600;font-size:13px}
+.face.backf .exspk{width:40px;height:40px;font-size:15px;margin-top:2px}
 .splad{display:flex;gap:6px;justify-content:center;margin-top:10px}
 .splad span{font-size:11.5px;font-weight:700;color:var(--mist);border:1.4px solid rgba(253,254,255,.2);border-radius:999px;padding:4px 10px}
 .splad span.on{background:var(--cream);color:var(--ink);border-color:transparent}
@@ -305,6 +351,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
           <div style="font-size:15px;font-weight:700;color:var(--mist)" id="fWordSmall"></div>
           <div class="mean" id="fMean"></div>
           <div class="ex" id="fEx"></div>
+          <button class="spk exspk" id="fExSpk" onclick="event.stopPropagation();speakEx()">🔊</button>
           <div class="hintt">다시 탭하면 앞면으로</div>
         </div>
       </div>
@@ -313,6 +360,8 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       <button class="bigbtn g" onclick="markCard(true)">이미 알아 😎</button>
       <button class="bigbtn o" onclick="markCard(false)">새로 배웠어 ✏️</button>
     </div>
+    <div class="btnrow" id="makeRow"><button class="bigbtn c" onclick="startMake()">✏️ 문장 직접 만들어보기</button></div>
+    <div class="iptips" id="fIpaTip"></div>
   </section>
 
   <!-- ============ 퀴즈 ============ -->
@@ -342,6 +391,22 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
         <p id="doneMsg"></p>
       </div>
       <div style="height:18px"></div>
+      <!-- 피드백 (선택 — 안 써도 그냥 홈으로 가면 됨) -->
+      <div class="fbwrap" id="fbWrap">
+        <button class="fbopen" id="fbOpen" onclick="fbOpen()">📝 하고 싶은 말 남기기 <small>· 안 써도 괜찮아</small></button>
+        <div class="fbcard" id="fbCard" style="display:none">
+          <div class="q">방금 한 거 어땠어?<small>고른 것만 보내도 되고, 그냥 넘겨도 돼.</small></div>
+          <div class="segs" id="fbMood"></div>
+          <div class="fbtags" id="fbTags"></div>
+          <textarea id="fbTxt" maxlength="500" placeholder="더 하고 싶은 말이 있으면 여기에 (예: 문제가 너무 많아, 이 화면이 안 넘어가)"></textarea>
+          <div class="fbrow">
+            <button onclick="fbClose()">그냥 넘기기</button>
+            <button class="o" onclick="fbSend()">보내기</button>
+          </div>
+        </div>
+        <div class="fbthx" id="fbThx" style="display:none"></div>
+      </div>
+      <div style="height:14px"></div>
       <button class="bigbtn o" style="width:100%" onclick="goHome(true)">홈으로 →</button>
     </div>
   </section>
@@ -503,6 +568,26 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       <button class="bigbtn g" id="spHint" onclick="spHint()">힌트</button>
       <button class="bigbtn o" id="spGo" onclick="spGo()">확인</button>
     </div>
+  </section>
+
+  <!-- ============ 문장 만들기 ============ -->
+  <section class="screen" id="scr-make">
+    <div class="topbar">
+      <button class="back" onclick="mkBack()">←</button>
+      <div class="ptrack"><div class="pfill" id="mkFill"></div></div>
+      <div class="pcount" id="mkCount"></div>
+    </div>
+    <div class="splad" id="mkLad"></div>
+    <div class="mkdir" id="mkDir"></div>
+    <div class="slots" id="mkSlots"></div>
+    <div class="tiles" id="mkTiles"></div>
+    <input class="spinput mkinput" id="mkInput" style="display:none" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" placeholder="여기에 영어 문장을 써 봐">
+    <div class="fb" id="mkFb"></div>
+    <div class="btnrow">
+      <button class="bigbtn g" id="mkAns" onclick="mkAnswer()">답</button>
+      <button class="bigbtn o" id="mkGo" onclick="mkGo()">확인</button>
+    </div>
+    <div class="btnrow"><button class="bigbtn c" id="mkNext" onclick="mkNext()">다음 단어 →</button></div>
   </section>
 
   <!-- ============ 계산 연습 / 출발점 찾기 ============ -->
@@ -673,7 +758,7 @@ const SESSION_DEF=[
 
 /* ================= 상태 ================= */
 let S;
-function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],imp:{words:[],quiz:[],log:[]}};}
+function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],imp:{words:[],quiz:[],log:[]}};}
 function migrate(){
   if(!S.settings)S.settings={name:"",newPerDay:7};
   if(!S.math)S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};
@@ -685,6 +770,7 @@ function migrate(){
   if(!S.settings.sync)S.settings.sync={code:"",up:false};
   if(!S.settings.view)S.settings.view={code:""};
   if(!Array.isArray(S.wrongLog))S.wrongLog=[];
+  if(!Array.isArray(S.fb))S.fb=[];
   if(!S.imp)S.imp={words:[],quiz:[],log:[],decks:[]};
   if(!Array.isArray(S.imp.decks))S.imp.decks=[];
   if(!Array.isArray(S.imp.words))S.imp.words=[];
@@ -783,6 +869,142 @@ function ipaOf(word){
   const t=(r&&r.ipa)||(IPA_BASE[w]?"/"+IPA_BASE[w]+"/":"");
   return t;
 }
+/* ---- 발음기호 풀이: 그 단어에 나온 기호를 하나씩 설명 (아이가 기호를 못 읽어서 추가) ---- */
+function ipaClean(raw){
+  let s=String(raw||"").trim();
+  const m=s.match(/[\/\[]([^\/\]]+)[\/\]]/);
+  if(m)s=m[1];
+  return s.split(",")[0].split(" ")[0];
+}
+/* [기호] = [한글 소리, 어떻게 내는지] */
+const IPA_SYM={
+"ˈ":["강세","바로 뒤에 오는 소리를 제일 세게 읽으라는 표시"],
+"ˌ":["약한 강세","여기도 살짝 세게. 강세 표시(ˈ)보다는 약하게"],
+"ː":["길게","바로 앞 소리를 길게 늘여서"],
+"iː":["이~","입을 옆으로 당기고 길게 '이~' (see, eat)"],
+"ɪ":["이","짧고 힘 뺀 '이'. '이'와 '에' 사이쯤 (sit, big)"],
+"e":["에","짧은 '에' (bed, red)"],
+"ɛ":["에","짧은 '에' (bed, red)"],
+"æ":["애","입을 크게 벌린 '애'. '애'와 '아' 사이 소리 (cat, hand)"],
+"ɑː":["아~","입을 크게 벌리고 길게 '아~' (car, hot)"],
+"ɑ":["아","입을 크게 벌린 '아'"],
+"ɒ":["아/오","입을 벌린 짧은 '아'. 영국식은 '오'에 가까워"],
+"ɔː":["오~","입술을 동그랗게 모으고 길게 '오~' (door, small)"],
+"ɔ":["오","입술을 동그랗게 '오'"],
+"o":["오","입술을 동그랗게 '오'"],
+"ʊ":["우","짧게 툭 내는 '우' (book, foot)"],
+"uː":["우~","입술을 쭉 내밀고 길게 '우~' (moon, food)"],
+"u":["우","짧은 '우'"],
+"ʌ":["어","짧고 툭 뱉는 '어' (run, cup)"],
+"ɜː":["어~","입에 힘주고 길게 '어~' (bird, learn)"],
+"ɝ":["어r","'어~' 하면서 혀를 살짝 말아 올려"],
+"ɚ":["어r","힘 뺀 '어' 하면서 혀를 살짝 말아 올려 (water 의 끝)"],
+"ə":["어","힘을 완전히 뺀 아주 짧은 '어'. 흘리듯 지나가 (about, apple)"],
+"i":["이","짧은 '이'. 단어 끝에서 자주 나와 (happy, movie)"],
+"eɪ":["에이","'에'에서 '이'로 미끄러지듯 (name, day)"],
+"aɪ":["아이","'아'에서 '이'로 미끄러지듯 (like, eye)"],
+"ɔɪ":["오이","'오'에서 '이'로 미끄러지듯 (boy, coin)"],
+"aʊ":["아우","'아'에서 '우'로 미끄러지듯 (house, now)"],
+"oʊ":["오우","'오'에서 '우'로 미끄러지듯 (go, snow)"],
+"əʊ":["오우","'오'에서 '우'로 미끄러지듯 (go, snow)"],
+"ɪə":["이어","'이'에서 '어'로 (hear, year)"],
+"eə":["에어","'에'에서 '어'로 (chair, bear)"],
+"ʊə":["우어","'우'에서 '어'로 (sure)"],
+"p":["프","입술을 붙였다가 바람을 터뜨려. 목은 안 울려"],
+"b":["브","p 와 입 모양은 같은데 목을 울려"],
+"t":["트","혀끝을 윗니 뒤에 댔다가 떼면서 바람"],
+"d":["드","t 와 같은 자리, 목을 울려"],
+"k":["크","혀 뒤쪽을 목구멍 가까이 붙였다 떼. 목은 안 울려"],
+"ɡ":["그","k 와 같은 자리, 목을 울려"],
+"g":["그","k 와 같은 자리, 목을 울려"],
+"f":["프","윗니로 아랫입술을 살짝 물고 바람만 (fish)"],
+"v":["브","f 와 같은 입 모양인데 목을 울려 (love)"],
+"θ":["스","혀끝을 앞니 사이로 살짝 내밀고 바람 (think)"],
+"ð":["드","θ 와 같은 자리인데 목을 울려 (this, mother)"],
+"s":["스","혀끝을 윗니 뒤에 가까이 두고 뱀 소리처럼"],
+"z":["즈","s 에 목소리를 얹어 (zoo)"],
+"ʃ":["쉬","조용히 하라고 할 때 내는 '쉬~' (fish, she)"],
+"ʒ":["쥐","'쥐'를 부드럽게 이어서 (television)"],
+"tʃ":["치","혀끝을 댔다가 '치' 하고 터뜨려 (chair)"],
+"dʒ":["쥐","tʃ 와 같은 자리, 목을 울려 (jump)"],
+"h":["흐","목에서 바람만 '흐'"],
+"m":["음","입을 다물고 코로 소리 내"],
+"n":["은","혀끝을 윗니 뒤에 붙이고 코로"],
+"ŋ":["응","입은 벌린 채 코로 '응' (song, morning)"],
+"l":["을","혀끝을 윗니 뒤에 딱 붙이고 '을'"],
+"r":["르","혀를 아무데도 안 대고 살짝 말아서 '뤄'"],
+"ɹ":["르","혀를 아무데도 안 대고 살짝 말아서 '뤄'"],
+"j":["이","'야, 유' 할 때 앞에 붙는 소리 (yes)"],
+"w":["우","입술을 동그랗게 모았다 펴 (we, water)"],
+"x":["흐","목 안쪽에서 긁듯이 '흐'"]};
+/* 발음기호를 앞에서부터 하나씩 끊어 설명거리로 (같은 기호는 한 번만) */
+function ipaBreak(raw){
+  const s=ipaClean(raw).replace(/:/g,"ː").replace(/[\/\[\]()\s.,;'"’\-ˑ·‧‿͡]/g,"");
+  const res=[],seen={};
+  for(let i=0;i<s.length;){
+    const two=s.substr(i,2),one=s.charAt(i);
+    const k=IPA_SYM[two]?two:(IPA_SYM[one]?one:"");
+    if(!k){i++;continue;}
+    i+=k.length;
+    if(seen[k])continue;
+    seen[k]=1;res.push([k,IPA_SYM[k][0],IPA_SYM[k][1]]);
+  }
+  return res;
+}
+/* 철자에서 알아 두면 좋은 파닉스 (앞에 있는 것이 더 중요한 규칙) */
+const PHONICS=[
+[/igh/,"<b>igh</b> 는 세 글자가 통째로 '아이' 소리 (night, light)"],
+[/^kn/,"<b>kn</b> 으로 시작하면 k 는 소리가 안 나 (know, knee)"],
+[/^wr/,"<b>wr</b> 으로 시작하면 w 는 소리가 안 나 (write)"],
+[/tion$/,"끝의 <b>-tion</b> 은 '션' 으로 읽어"],
+[/ck/,"<b>ck</b> 는 두 글자지만 '크' 소리 한 번 (black, book)"],
+[/sh/,"<b>sh</b> 는 두 글자가 합쳐져 '쉬' 소리 (fish)"],
+[/^ch|[^s]ch/,"<b>ch</b> 는 두 글자가 합쳐져 '치' 소리 (chair)"],
+[/th/,"<b>th</b> 는 혀끝을 앞니 사이에 살짝 물고 내는 소리 (think, mother)"],
+[/ph/,"<b>ph</b> 는 f 처럼 '프' 소리 (phone)"],
+[/ng/,"<b>ng</b> 는 코로 내는 '응' 소리 (song)"],
+[/air/,"<b>air</b> 는 '에어' 소리 (chair, hair)"],
+[/ear/,"<b>ear</b> 는 보통 '이어' 소리 (hear, year). bear 처럼 '에어'로 읽는 것도 있어"],
+[/ee/,"<b>ee</b> 는 길게 '이~' (see, week)"],
+[/ea/,"<b>ea</b> 는 보통 길게 '이~' (eat, read). 가끔 다르게도 읽어"],
+[/oo/,"<b>oo</b> 는 '우' 소리. book 은 짧게, moon 은 길게"],
+[/ai|ay/,"<b>ai · ay</b> 는 '에이' 소리 (rain, day)"],
+[/oa/,"<b>oa</b> 는 '오우' 소리 (boat)"],
+[/ou/,"<b>ou</b> 는 보통 '아우' 소리 (house)"],
+[/ow/,"<b>ow</b> 는 '오우' 또는 '아우' (snow / now)"],
+[/oi|oy/,"<b>oi · oy</b> 는 '오이' 소리 (boy)"],
+[/[aeiou][bcdfgkmnpstvz]e$/,"끝의 <b>e</b> 는 소리가 안 나. 대신 앞 모음을 알파벳 이름대로 읽어 (like, name)"],
+[/le$/,"끝의 <b>-le</b> 은 '을' 소리 (apple)"],
+[/y$/,"끝의 <b>y</b> 는 '이' 소리 (happy, study)"],
+[/^c[aou]|[^s]c[aou]/,"<b>c</b> 는 a·o·u 앞에서 '크' 소리 (cat, come)"],
+[/c[eiy]/,"<b>c</b> 는 e·i·y 앞에서 '스' 소리 (rice)"],
+[/g[eiy]/,"<b>g</b> 는 e·i·y 앞에서 '쥐' 소리 (age)"],
+[/bb|dd|ff|gg|ll|mm|nn|pp|rr|ss|tt/,"같은 글자가 두 번 있으면 소리는 한 번만 (rabbit, apple)"],
+[/ar/,"<b>ar</b> 은 '아-' 소리 (car)"],
+[/or/,"<b>or</b> 은 '오-' 소리 (door, morning)"],
+[/er$|ir|ur/,"<b>er · ir · ur</b> 은 '어-' 소리 (water, bird)"]];
+function phonicsOf(word){
+  const w=String(word||"").toLowerCase().trim();
+  const res=[];
+  if(!/^[a-z]+$/.test(w))return res;
+  for(let i=0;i<PHONICS.length&&res.length<2;i++)if(PHONICS[i][0].test(w))res.push(PHONICS[i][1]);
+  return res;
+}
+function ipaHelpHtml(word,ipa){
+  const rows=ipa?ipaBreak(ipa):[],ph=phonicsOf(word);
+  let h="";
+  if(rows.length){
+    h+="<div class='iptt'>발음기호 하나씩 <span>"+esc(ipa)+"</span></div>";
+    h+=rows.map(function(r){
+      return "<div class='iptip'><span class='sym'>"+esc(r[0])+"</span><span><span class='snd'>"+esc(r[1])+"</span> "+esc(r[2])+"</span></div>";
+    }).join("");
+  }
+  if(ph.length){
+    h+="<div class='iptt'>글자 읽는 법 (파닉스)</div>";
+    h+=ph.map(function(x){return "<div class='iptip ph'>"+x+"</div>";}).join("");
+  }
+  return h;
+}
 function hasVoice(){if(!EN_VOICE)pickVoice();return !!EN_VOICE;}
 function canSpeak(word){const r=PRON[String(word||"").toLowerCase().trim()];return !!(r&&r.audio)||hasVoice();}
 let EN_VOICE=null;
@@ -810,7 +1032,7 @@ function speak(t){try{
 }catch(e){}}
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
 function level(){return Math.min(10,Math.floor(S.points/500)+1);}
-function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);if(id==="scr-done")fbReset();}
 
 /* ================= 홈 ================= */
 function newWordsToday(){
@@ -914,13 +1136,16 @@ function showCard(){
   setIpa(w[0]);
   $("learnFill").style.width=(cur.idx/cur.cards.length*100)+"%";
   $("learnCount").textContent=(cur.idx+1)+"/"+cur.cards.length;
+  syncMakeUI();
   if(cur.session===1)setTimeout(()=>speak(w[0]),350);
 }
 function setIpa(word){
-  const el=$("fIpa"),btn=document.querySelector("#scr-learn .spk");
+  const el=$("fIpa"),tip=$("fIpaTip"),btn=document.querySelector("#scr-learn .spk");
   if(!el)return;
   const paint=function(){
-    el.textContent=word?ipaOf(word):"";
+    const t=word?ipaOf(word):"";
+    el.textContent=t;
+    if(tip)tip.innerHTML=ipaHelpHtml(word,t);
     if(btn)btn.style.display=(word&&canSpeak(word))?"":"none";
   };
   paint();
@@ -928,6 +1153,17 @@ function setIpa(word){
 }
 function flipIt(){$("flipCard").classList.toggle("flipped");}
 function speakCur(){if(dk){speak(dk.deck.cards[dk.ids[dk.idx]].front);return;}playPron(WORDS[cur.cards[cur.idx]][0]);}
+function speakEx(){
+  const it=curItem();
+  if(!it||!it.ex){toast("이 카드엔 예문이 없어");return;}
+  speak(it.ex);
+}
+function syncMakeUI(){
+  const it=curItem();
+  const btn=$("fExSpk"),row=$("makeRow");
+  if(btn)btn.style.display=(it&&it.ex&&hasVoice())?"":"none";
+  if(row)row.style.display=(it&&mkOk(it))?"":"none";
+}
 function markCard(known){
   if(dk){deckMark(known);return;}
   const id=cur.cards[cur.idx];
@@ -1037,6 +1273,68 @@ function finishSession(){
   show("scr-done");
 }
 function goHome(refresh){renderHome();show("scr-home");setNav("home");}
+
+/* ================= 피드백 (아이가 선택적으로 남기는 한마디) ================= */
+const FB_MOOD=[["easy","쉬웠어"],["good","딱 좋아"],["hard","어려웠어"]];
+const FB_TAGS=["재밌었어","지루했어","시간이 길어","설명이 어려워","또 하고 싶어","앱이 이상해"];
+let fbSel={mood:"",tags:[]};
+function fbCtx(){
+  const o={title:($("doneTitle").textContent||"").trim()};
+  if(typeof cur!=="undefined"&&cur&&cur.session)o.sess=cur.session;
+  if(typeof mc!=="undefined"&&mc&&mc.mode)o.mode=mc.mode;
+  if(S.math&&S.math.level)o.mathLevel=mathLevel();
+  return o;
+}
+function fbReset(){
+  if(!$("fbCard"))return;
+  fbSel={mood:"",tags:[]};
+  $("fbTxt").value="";
+  $("fbCard").style.display="none";
+  $("fbThx").style.display="none";
+  $("fbOpen").style.display="";
+}
+function fbOpen(){
+  $("fbOpen").style.display="none";
+  $("fbCard").style.display="";
+  fbRender();
+}
+function fbClose(){
+  $("fbCard").style.display="none";
+  $("fbOpen").style.display="";
+}
+function fbRender(){
+  const m=$("fbMood");m.innerHTML="";
+  FB_MOOD.forEach(function(p){
+    const b=document.createElement("button");
+    b.className="seg"+(fbSel.mood===p[0]?" on":"");b.textContent=p[1];
+    b.onclick=function(){fbSel.mood=(fbSel.mood===p[0]?"":p[0]);fbRender();};
+    m.appendChild(b);
+  });
+  const t=$("fbTags");t.innerHTML="";
+  FB_TAGS.forEach(function(tag){
+    const b=document.createElement("button");
+    b.className="fbtag"+(fbSel.tags.indexOf(tag)>=0?" on":"");b.textContent=tag;
+    b.onclick=function(){
+      const i=fbSel.tags.indexOf(tag);
+      if(i>=0)fbSel.tags.splice(i,1);else fbSel.tags.push(tag);
+      fbRender();
+    };
+    t.appendChild(b);
+  });
+}
+function fbSend(){
+  const txt=($("fbTxt").value||"").trim();
+  if(!fbSel.mood&&!fbSel.tags.length&&!txt){toast("하나만 골라도 돼!");return;}
+  if(!Array.isArray(S.fb))S.fb=[];
+  S.fb.push({at:new Date().toISOString(),d:todayKey(),ctx:fbCtx(),
+    mood:fbSel.mood,tags:fbSel.tags.slice(),txt:txt.slice(0,500)});
+  if(S.fb.length>300)S.fb=S.fb.slice(-300);
+  save();
+  $("fbCard").style.display="none";
+  $("fbOpen").style.display="none";
+  $("fbThx").textContent="고마워, 잘 받았어 🐱 다음에 고칠 때 꼭 볼게.";
+  $("fbThx").style.display="";
+}
 
 /* ================= 단어장 ================= */
 let vFilter="all";
@@ -1187,7 +1485,7 @@ function devSampleClear(){
 
 /* ── 개발자: 학습 내용 열람 (개발자 메뉴 안에서 바로 확인) ── */
 let dvMenu="",dvSub="all";
-const DV_MENUS=[["eng","영어 단어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"],["wrong","오답"],["all","전체"]];
+const DV_MENUS=[["eng","영어 단어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"],["wrong","오답"],["fb","💬 피드백"],["all","전체"]];
 function dvOpts(opts,ans){return '<span class="x">보기: '+(opts||[]).map(function(o){return String(o)===String(ans)?'<b class="a">'+esc(o)+'</b>':esc(o);}).join(" · ")+'</span>';}
 function dvMathItem(p){
   return '<div class="dvi">'+esc(p.q)+'<br>'+dvOpts(p.opts||opts4(p.a,p.wrong),p.a)+(p.steps&&p.steps.length?'<br><span class="x">풀이: '+p.steps.map(esc).join(" → ")+'</span>':"")+'</div>';
@@ -1251,7 +1549,41 @@ function dvWrong(){
   w.forEach(function(e){h+='<div class="dvi">'+esc(e.q)+' → <b class="a">'+esc(e.a)+'</b><br><span class="x">'+esc(e.topic||"")+' · 틀린 횟수 '+(e.n||1)+(e.ok?' · 연속 정답 '+e.ok:"")+'</span></div>';});
   return h;
 }
+function fbMoodName(k){let n=k;FB_MOOD.forEach(function(p){if(p[0]===k)n=p[1];});return n;}
+function fbLines(){
+  return (S.fb||[]).slice().reverse().map(function(e){
+    const head=(e.d||"")+" · "+((e.ctx&&e.ctx.title)||"")+(e.ctx&&e.ctx.sess?" (세션 "+e.ctx.sess+")":"");
+    const pick=[e.mood?fbMoodName(e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
+    return {head:head,pick:pick,txt:e.txt||""};
+  });
+}
+function dvFb(){
+  const ls=fbLines();
+  let h='<h5>아이 피드백 · '+ls.length+'개</h5>';
+  if(!ls.length)return h+'<div class="dvi x">아직 남긴 말이 없어요. 학습을 마친 화면에서 [하고 싶은 말 남기기]로 쓸 수 있어요.</div>';
+  ls.forEach(function(l){
+    h+='<div class="dvi"><span class="x">'+esc(l.head)+'</span>'
+      +(l.pick?'<br><b class="a">'+esc(l.pick)+'</b>':"")
+      +(l.txt?'<br>'+esc(l.txt):"")+'</div>';
+  });
+  return h;
+}
+function fbCopy(){
+  const ls=fbLines();
+  if(!ls.length){toast("아직 피드백이 없어요");return;}
+  const txt="[공부하는 고양이] 아이 피드백 "+ls.length+"개\n\n"+ls.map(function(l){
+    return "- "+l.head+"\n  고른 것: "+(l.pick||"없음")+(l.txt?"\n  쓴 말: "+l.txt:"");
+  }).join("\n");
+  copyText(txt,"피드백을 복사했어요");
+}
+function fbExport(){
+  const blob=new Blob([JSON.stringify({type:"feedback",exportedAt:todayKey(),count:(S.fb||[]).length,feedback:S.fb||[]},null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="feedback-"+todayKey()+".json";a.click();
+  toast("피드백 파일을 저장했어요");
+}
 function dvBody(){
+  if(dvMenu==="fb")return dvFb();
   if(dvMenu==="eng")return dvEng(dvSub);
   if(dvMenu==="math"){
     if(dvSub==="diag")return dvDiag();
@@ -1264,7 +1596,7 @@ function dvBody(){
   if(dvMenu==="wrong")return dvWrong();
   let h=dvEng("all");
   for(let l=1;l<=7;l++)h+=dvMathLevel(l,2);
-  h+=dvDiag();h+=dvWeek();h+=dvDecks();h+=dvSets();h+=dvWrong();
+  h+=dvDiag();h+=dvWeek();h+=dvDecks();h+=dvSets();h+=dvWrong();h+=dvFb();
   return h;
 }
 function renderDevView(){
@@ -1290,7 +1622,10 @@ function renderDevView(){
   const out=$("devViewOut");
   if(!dvMenu){out.innerHTML="";return;}
   const gen=dvMenu==="math"||dvMenu==="week"||dvMenu==="all";
-  out.innerHTML='<div class="dvout">'+dvBody()+'</div>'+(gen?'<button class="setbtn" style="background:var(--cream);margin-top:8px" onclick="renderDevView()">예시 새로 뽑기 (자동 출제 확인용)</button>':"");
+  out.innerHTML='<div class="dvout">'+dvBody()+'</div>'
+    +(gen?'<button class="setbtn" style="background:var(--cream);margin-top:8px" onclick="renderDevView()">예시 새로 뽑기 (자동 출제 확인용)</button>':"")
+    +(dvMenu==="fb"?'<button class="setbtn" style="background:var(--cream);margin-top:8px" onclick="fbCopy()">📋 피드백 전부 복사</button>'
+      +'<button class="setbtn" style="background:var(--orange);margin-top:8px" onclick="fbExport()">피드백만 파일로 저장 (.json)</button>':"");
 }
 function exportData(){
   const blob=new Blob([JSON.stringify(buildExport(),null,2)],{type:"application/json"});
@@ -1960,6 +2295,184 @@ function finishSpell(){
   doneScreen(CATS.pencil,"스펠링 연습 끝!",pts,"정답률 "+acc+"%"+(mastered?" · "+mastered+"개는 혼자서도 척척 써!":" · 한 단어를 두 번 맞히면 다음 단계로 올라가"));
 }
 
+/* ---- 문장 만들기 (카드 → 순서 맞추기 → 직접 쓰기) ---- */
+let mk=null;
+function mkItem(o){return o?{word:o.front||o[0],mean:o.back||o[1],ex:String((o.example!==undefined?o.example:o[2])||"").trim(),exKo:String((o.exampleKo!==undefined?o.exampleKo:o[3])||"").trim()}:null;}
+function curItem(){
+  if(dk&&dk.deck)return mkItem(dk.deck.cards[dk.ids[dk.idx]]);
+  if(cur&&cur.cards&&cur.cards.length)return mkItem(WORDS[cur.cards[cur.idx]]);
+  return null;
+}
+function mkOk(it){
+  if(!it||!it.ex)return false;
+  if(/[^ -~]/.test(it.ex))return false;
+  const n=it.ex.split(/\s+/).length;
+  return n>=3&&n<=12;
+}
+function mkList(){
+  if(dk&&dk.deck)return dk.ids.map(function(i){return mkItem(dk.deck.cards[i]);});
+  return (cur&&cur.cards?cur.cards:[]).map(function(id){return mkItem(WORDS[id]);});
+}
+function startMake(){
+  const all=mkList(),at=dk?dk.idx:(cur?cur.idx:0);
+  const list=[];let start=0;
+  all.forEach(function(it,i){if(mkOk(it)){if(i<=at)start=list.length;list.push(it);}});
+  if(!list.length){toast("이 단어들은 아직 예문이 없어");return;}
+  mk={list:list,idx:start};
+  showMake();
+}
+function showMake(){
+  const it=mk.list[mk.idx],parts=it.ex.split(/\s+/);
+  let tiles=shuffle(parts);
+  for(let k=0;k<8&&tiles.join(" ")===parts.join(" ");k++)tiles=shuffle(parts);
+  mk.cur={it:it,parts:parts,tiles:tiles,slots:parts.map(function(){return "";}),used:{},order:[],stage:1,done:false,ok:false,showAns:false,revealed:false};
+  $("mkFill").style.width=(mk.idx/mk.list.length*100)+"%";
+  $("mkCount").textContent=(mk.idx+1)+"/"+mk.list.length;
+  $("mkInput").value="";
+  $("mkFb").innerHTML="";
+  show("scr-make");
+  paintMake();
+}
+function paintMake(){
+  const c=mk.cur,last=(mk.idx+1>=mk.list.length);
+  $("mkLad").innerHTML='<span class="'+(c.stage===1?"on":"")+'">1단계 순서 맞추기</span><span class="'+(c.stage===2?"on":"")+'">2단계 직접 쓰기</span>';
+  $("mkNext").textContent=last?"카드로 돌아가기":"다음 단어 →";
+  $("mkAns").style.display=c.showAns?"":"none";
+  if(c.stage===1){
+    $("mkDir").textContent=c.done?"소리 내어 한 번 읽어 보자":"섞인 단어를 순서대로 놓아 문장을 만들어 봐";
+    $("mkInput").style.display="none";
+    let sh="";
+    c.slots.forEach(function(t,i){
+      sh+='<div class="wslot'+(t?(c.mark&&c.mark[i]?" ok":""):" empty")+'">'+esc(t||"·")+"</div>";
+    });
+    $("mkSlots").innerHTML=sh;
+    if(c.done)$("mkTiles").innerHTML="";
+    else{
+      let th="";
+      c.tiles.forEach(function(t,i){th+='<button class="wtile'+(c.used[i]?" used":"")+'" onclick="mkTap('+i+')">'+esc(t)+"</button>";});
+      th+='<button class="wtile del" onclick="mkDel()">←</button>';
+      $("mkTiles").innerHTML=th;
+    }
+    $("mkGo").textContent=c.done?"직접 써보기 ✏️":"확인";
+  }else{
+    $("mkDir").textContent=c.it.word+" 를 넣어서 네 문장을 써 봐";
+    $("mkSlots").innerHTML="";$("mkTiles").innerHTML="";
+    $("mkInput").style.display="";
+    $("mkGo").textContent=c.done?"다시 써보기":"확인";
+  }
+}
+function mkTap(i){
+  const c=mk.cur;if(c.done||c.used[i])return;
+  let pos=-1;
+  for(let k=0;k<c.slots.length;k++){if(!c.slots[k]){pos=k;break;}}
+  if(pos<0)return;
+  c.slots[pos]=c.tiles[i];c.used[i]=true;c.order.push([pos,i]);
+  paintMake();
+}
+function mkDel(){
+  const c=mk.cur;if(c.done||!c.order.length)return;
+  const last=c.order.pop();c.slots[last[0]]="";delete c.used[last[1]];
+  paintMake();
+}
+/* 답 버튼 — 틀린 뒤에만 나타난다. 누르면 답을 보여주고 그 문제는 끝난다. */
+function mkAnswer(){
+  const c=mk.cur;if(!c||!c.showAns)return;
+  c.showAns=false;
+  speak(c.it.ex);
+  if(c.stage===2){
+    $("mkFb").innerHTML='<img src="'+CATS.comic+'"><div>이렇게 쓸 수도 있어 — <b>'+esc(c.it.ex)+'</b><br><span class="note">'+esc(c.it.exKo)+' · 똑같이 안 써도 돼</span></div>';
+    paintMake();
+    return;
+  }
+  c.slots=c.parts.slice();c.mark=c.parts.map(function(){return true;});
+  c.done=true;c.ok=false;c.revealed=true;
+  $("mkFb").innerHTML='<img src="'+CATS.comic+'"><div>바른 순서는 <b>'+esc(c.it.ex)+'</b><br><span class="note">'+esc(c.it.exKo)+'</span></div>';
+  paintMake();
+}
+function mkGo(){
+  const c=mk.cur;
+  if(c.stage===2)return mkWrite();
+  if(c.done)return mkStage2();
+  if(c.slots.some(function(t){return !t;})){toast("단어를 다 놓아 보자!");return;}
+  const mark=c.parts.map(function(t,i){return c.slots[i]===t;});
+  if(mark.every(Boolean)){
+    c.mark=mark;c.done=true;c.ok=true;c.showAns=false;
+    paintMake();
+    speak(c.it.ex);
+    $("mkFb").innerHTML='<img src="'+CATS.jump+'"><div>맞았어! <b>'+esc(c.it.ex)+'</b><br><span class="note">'+esc(c.it.exKo)+'</span></div>';
+    return;
+  }
+  /* 맞은 자리는 남기고 틀린 자리만 비워서 다시 놓게 한다 */
+  const keep=[];
+  c.order.forEach(function(o){
+    if(mark[o[0]])keep.push(o);
+    else{delete c.used[o[1]];c.slots[o[0]]="";}
+  });
+  c.order=keep;c.mark=mark;c.showAns=true;
+  const right=mark.filter(Boolean).length;
+  paintMake();
+  $("mkFb").innerHTML='<img src="'+CATS.scratch+'"><div>'+(right?'아직이야 — '+right+'개 자리는 맞았어. 나머지만 다시 놓아 보자.':'아직이야 — 처음부터 다시 놓아 보자.')+'<br><span class="note">모르겠으면 «답»을 눌러도 돼.</span></div>';
+}
+function mkStage2(){
+  const c=mk.cur;
+  c.stage=2;c.done=false;c.ok=false;c.showAns=false;
+  $("mkFb").innerHTML='<img src="'+CATS.pencil+'"><div>이번엔 네가 만들어 볼 차례야.<br><span class="note">예문이랑 달라도 괜찮아. 짧아도 괜찮아.</span></div>';
+  paintMake();
+  setTimeout(function(){try{$("mkInput").focus();}catch(e){}},120);
+}
+function reEsc(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function mkHasWord(sentence,word){
+  const base=String(word||"").toLowerCase().trim();
+  if(!base)return false;
+  const forms=[base,base+"s",base+"es",base+"ed",base+"d",base+"ing"];
+  if(/y$/.test(base))forms.push(base.slice(0,-1)+"ies",base.slice(0,-1)+"ied");
+  if(/e$/.test(base))forms.push(base.slice(0,-1)+"ing",base.slice(0,-1)+"ed");
+  return forms.some(function(f){return new RegExp("(^|[^a-z])"+reEsc(f)+"([^a-z]|$)","i").test(sentence);});
+}
+function mkWrite(){
+  const c=mk.cur;
+  if(c.done){
+    c.done=false;$("mkFb").innerHTML="";paintMake();
+    setTimeout(function(){try{$("mkInput").focus();}catch(e){}},120);
+    return;
+  }
+  const raw=($("mkInput").value||"").trim();
+  if(!raw){toast("먼저 한 문장 써 보자!");return;}
+  if(/[ㄱ-ㆎ가-힣]/.test(raw)){
+    $("mkFb").innerHTML='<img src="'+CATS.comic+'">한글이 섞였어 — 영어로만 써 보자';
+    return;
+  }
+  const n=raw.split(/\s+/).length;
+  /* 정답 기준은 단어와 길이뿐. 대문자·마침표는 틀린 걸로 치지 않고 팁으로만 알려준다. */
+  const chk=[
+    [mkHasWord(raw,c.it.word),"<b>"+esc(c.it.word)+"</b> 가 들어갔나"],
+    [n>=3,"3단어 이상인가 (지금 "+n+"개)"]
+  ];
+  const tips=[];
+  if(!/^[A-Z]/.test(raw))tips.push("첫 글자는 대문자로");
+  if(!/[.?!]$/.test(raw))tips.push("끝에 . ? ! 붙이기");
+  const bad=chk.filter(function(x){return !x[0];}).length;
+  c.done=true;c.ok=!bad;
+  if(bad)c.showAns=true;
+  $("mkFb").innerHTML='<img src="'+CATS[bad?"scratch":"jump"]+'"><div class="mkchk">'+
+    (bad?"":"<b>맞았어! 네 문장이 됐어.</b><br>")+
+    chk.map(function(x){return (x[0]?"✅ ":"✏️ ")+x[1];}).join("<br>")+
+    '<span class="note">'+(bad?"✏️ 표시된 것만 고쳐 보자. 모르겠으면 «답»을 눌러도 돼."
+      :"문법까지는 고양이가 못 봐줘 — 소리 내어 한 번 읽어 보자."+(tips.length?"<br>이렇게 하면 더 좋아 — "+tips.join(", "):""))+'</span></div>';
+  paintMake();
+  speak(raw);
+}
+function mkNext(){
+  if(mk.idx+1<mk.list.length){mk.idx++;showMake();}
+  else mkBack();
+}
+function mkBack(){
+  mk=null;
+  if(dk&&dk.deck)showDeckCard();
+  else if(cur&&cur.cards&&cur.cards.length)showCard();
+  else goHome();
+}
+
 /* ================= 4단계: 암기 과목 · 시험 모드 ================= */
 const SUBJ_NAME={social:"사회",science:"과학",history:"역사",korean:"국어",math:"수학",english:"영어",etc:"암기"};
 function subjName(s){return SUBJ_NAME[s]||"암기";}
@@ -2003,6 +2516,7 @@ function showDeckCard(){
   setIpa(/^[A-Za-z' -]+$/.test(dk.deck.cards[dk.ids[dk.idx]].front)?dk.deck.cards[dk.ids[dk.idx]].front:"");
   $("learnFill").style.width=(dk.idx/dk.ids.length*100)+"%";
   $("learnCount").textContent=(dk.idx+1)+"/"+dk.ids.length;
+  syncMakeUI();
 }
 function deckMark(known){
   const i=dk.ids[dk.idx];
@@ -2095,6 +2609,7 @@ function buildExport(){
       weakTopics:weak,learnedWords:Object.keys(S.words).length,
       spellingMastered:spellCandidates().filter(function(id){return S.words[id].spMaster;}).length},
     noteStage:noteStage(),noteStageName:NOTE_STAGE[noteStage()].name,dailyLoad:(S.settings.load||"normal"),
+    feedback:(S.fb||[]).slice(-100),
     report:weekReport().data,
     raw:S};
 }
@@ -2190,15 +2705,16 @@ const PROMPTS=[
  ["주간 리포트 코멘트","첨부한 파일의 report와 weekStats를 보고, 엄마가 아이에게 그대로 읽어 줄 코멘트를 3~4줄 써 줘. 과장 없이 담백하게(\"천재네\" 금지, \"지난주보다 2개 늘었네\" 방식). 마지막 줄에 다음 주에 뭘 조금 더 하면 좋을지 한 가지만 제안해 줘."],
  ["문제집 사진 → 유사 문제","첨부한 사진은 [과목·단원] 문제집이야. 각 문제와 같은 유형으로 숫자와 상황만 바꾼 문제를 3개씩 만들어줘. 난이도는 원본과 같거나 살짝 쉽게, 해설 포함. 앱 불러오기 형식(type:\"quiz\") JSON 파일로."]
 ];
-function copyText(txt){
+function copyText(txt,msg){
+  const m=msg||"요청문을 복사했어요";
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(function(){toast("요청문을 복사했어요");},function(){fallbackCopy(txt);});
-  }else fallbackCopy(txt);
+    navigator.clipboard.writeText(txt).then(function(){toast(m);},function(){fallbackCopy(txt,m);});
+  }else fallbackCopy(txt,m);
 }
-function fallbackCopy(txt){
+function fallbackCopy(txt,msg){
   const ta=document.createElement("textarea");ta.value=txt;
   ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();
-  try{document.execCommand("copy");toast("요청문을 복사했어요");}catch(e){toast("복사가 안 되면 길게 눌러 주세요");}
+  try{document.execCommand("copy");toast(msg||"요청문을 복사했어요");}catch(e){toast("복사가 안 되면 길게 눌러 주세요");}
   ta.remove();
 }
 let wsFilter="all";
