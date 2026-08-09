@@ -322,17 +322,10 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
 
   <div class="grow"></div>
 
-  <label class="fld">프로젝트 폴더
-    <input id="rootPath" spellcheck="false" placeholder="F:/projects/study-cat">
-  </label>
-  <button class="btn" onclick="openRoot()">폴더 열기</button>
-  <button class="btn" onclick="openCurriculum()">커리큘럼 편집</button>
-  <button class="btn" onclick="savePlan()">계획 저장</button>
-  <button class="btn" onclick="$('impFile').click()">계획 불러오기</button>
-  <input type="file" id="impFile" accept=".json" hidden onchange="importPlan(this)">
-
-  <button class="btn" onclick="pushPlan()">앱으로 보내기</button>
-  <button class="btn" onclick="pullDone()">완료 받기</button>
+  <span class="fld" id="syncState">동기화 준비 중…</span>
+  <button class="btn go" onclick="catCall()">🐱 캣샘 호출</button>
+  <button class="btn sm" onclick="catPath()" title="캣샘 호출이 안 열릴 때 — 프로젝트 폴더 경로 바꾸기">경로</button>
+  <button class="btn" onclick="stOpen()">학생 기록</button>
   <button class="btn go" onclick="adOpen()">관리</button>
 </div>
 
@@ -389,16 +382,33 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
   </div>
 </div>
 
+<!-- ============ 학생 기록 패널 (수준·학습방향·평가 — 캣샘이 관리) ============ -->
+<div class="ad" id="stWrap" hidden>
+  <div class="adPanel">
+    <div class="adHead">
+      <div>
+        <h2 style="margin:0">학생 기록</h2>
+        <div class="adSub" id="stSub">아이의 수준·학습방향·평가 — 캣샘이 관리해요</div>
+      </div>
+      <div style="flex:1"></div>
+      <button class="btn sm go" onclick="catCall()">🐱 캣샘 호출</button>
+      <button class="btn sm" onclick="stClose()">닫기 ✕</button>
+    </div>
+    <div class="adBody" id="stBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="curriculum.js"></script>
+<script src="학생기록.js"></script>
 <script>
 /* ==========================================================
    상태
    ========================================================== */
 const $ = function(id){ return document.getElementById(id); };
 const DAYN = ["일","월","화","수","목","금","토"];
-const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", cmdq:"catstudy_cmdq" };
+const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", cmdq:"catstudy_cmdq", syncAt:"catstudy_syncat" };
 
 let PLAN = {};        // { "2026-08": [ {i, node, date, s, done} ] }
 let ROOT = "F:/projects/study-cat";
@@ -484,7 +494,7 @@ function ofNode(id){ return list().filter(function(a){ return a.node===id; }); }
 function byId(i){ let r=null; list().forEach(function(a){ if(a.i===i) r=a; }); return r; }
 function nextId(){ let m=0; Object.keys(PLAN).forEach(function(k){
   PLAN[k].forEach(function(a){ if(a.i>m) m=a.i; }); }); return m+1; }
-function commit(){ jsave(LS.plan,PLAN); draw(); }
+function commit(){ jsave(LS.plan,PLAN); draw(); schedPush(); }
 
 function loadMin(key){
   return ofDate(key).reduce(function(t,a){
@@ -683,20 +693,17 @@ function drawDetail(){
   }
   h+='</div>';
 
-  h+='<div class="box"><h3>VS Code 에서 편집</h3><div class="acts">'
-    + '<button class="btn go" onclick="openNote(\''+n.id+'\',\''+n.subj+'\')">학습방법 파일</button>'
-    + '<button class="btn" onclick="openCurriculum()">노드 데이터</button>'
-    + '</div>'
-    + '<div class="hint">학습방법 파일에는 길게 씁니다 — 교과서에서 뽑은 문제, 아이가 막힌 곳.<br>'
-    + '왼쪽에 보이는 짧은 학습방법·통과 기준을 바꾸려면 <b>노드 데이터</b>(curriculum.js)를 고치고 새로고침하세요.</div>'
+  h+='<div class="box"><h3>고치고 싶은 게 있으면</h3>'
+    + '<div class="hint">학습방법·통과 기준·자료 수정은 <b>캣샘</b>에게 말로 하면 됩니다 — '
+    + '상단 [🐱 캣샘 호출]로 VS Code를 열고 "이 주제('+esc(n.title)+') 학습방법 바꿔줘"처럼 요청하세요.</div>'
     + '</div>';
 
   if(n.added){
     h+='<div class="box"><h3>아직 임시 노드</h3>'
-      + '<div class="hint">이 노드는 이 브라우저에만 있습니다. 아래 코드를 복사해 '
-      + 'curriculum.js 의 <b>'+esc(u.name)+'</b> 안에 붙여넣으면 정식 노드가 됩니다.</div>'
+      + '<div class="hint">이 노드는 아직 정식 커리큘럼이 아닙니다. '
+      + '캣샘에게 "임시 노드 <b>'+esc(n.title)+'</b> 정식 등록해줘"라고 말하면 '
+      + 'curriculum.js 의 <b>'+esc(u.name)+'</b>에 넣어 줍니다.</div>'
       + '<div class="acts" style="margin-top:9px">'
-      + '<button class="btn" onclick="copyNodeCode(\''+n.id+'\')">코드 복사</button>'
       + '<button class="btn danger" onclick="dropExtra(\''+n.id+'\')">임시 노드 삭제</button>'
       + '</div></div>';
   }
@@ -811,20 +818,20 @@ function tile(label,v,unit,cls){
 }
 
 /* ==========================================================
-   VS Code 호출
+   캣샘 호출 — VS Code 를 열어 Claude Code(캣샘)와 대화한다.
+   계획·학습방법·학생 기록 관리는 전부 캣샘에게 말로 시킨다.
    ========================================================== */
-function normRoot(){
-  let p=($("rootPath").value||ROOT).trim().replace(/\\/g,"/").replace(/\/+$/,"");
-  return p;
+function catCall(){
+  location.href="vscode://file/"+encodeURI(ROOT);
+  toast("VS Code가 열리면 Claude Code에서 캣샘을 부르세요");
 }
-function vscode(rel){
-  const uri="vscode://file/"+encodeURI(normRoot()+(rel?"/"+rel:""));
-  location.href=uri;
-  toast("VS Code 로 열었어요");
+/* 프로젝트 경로는 PC마다 다를 수 있다(USB 드라이브 문자) — 캣샘 호출이 안 열리면 여기로 고친다 */
+function catPath(){
+  const p=prompt("프로젝트 폴더 경로 (캣샘 호출이 안 열릴 때만 바꾸세요)",ROOT);
+  if(!p) return;
+  ROOT=p.trim().replace(/\\/g,"/").replace(/\/+$/,"");
+  jsave(LS.root,ROOT); toast("경로를 기억했어요");
 }
-function openRoot(){ vscode(""); }
-function openCurriculum(){ vscode("curriculum.js"); }
-function openNote(id,subj){ vscode("curriculum/"+subj+"/"+id+".md"); }
 
 /* ==========================================================
    노드 추가 (임시 → curriculum.js 로 승격)
@@ -847,62 +854,26 @@ function addNode(){
   EXTRA.push({ id:u.id+"-x"+k, unit:u.id, title:title, min:min, desc:desc,
     how:["(학습방법을 여기에 적으세요)"], check:"(통과 기준을 정하세요)",
     app:{ mode: subjOf(u.subj).id==="math" ? "math" : "words" } });
-  jsave(LS.extra,EXTRA);
+  jsave(LS.extra,EXTRA); schedPush();
   T=tree(); UI.open["u:"+u.id]=true; UI.sel=u.id+"-x"+k;
   jsave(LS.ui,UI); draw();
-  toast("추가했어요. 정식 등록은 '코드 복사' 로");
-}
-function copyNodeCode(id){
-  const n=findNode(id); if(!n) return;
-  const code = '          { id:"'+n.id+'", title:"'+n.title+'", min:'+n.min+',\n'
-    + '            desc:"'+n.desc+'",\n'
-    + '            how:['+n.how.map(function(h){ return '"'+h+'"'; }).join(",\n                 ")+'],\n'
-    + '            check:"'+n.check+'",\n'
-    + '            app:'+JSON.stringify(n.app).replace(/"(\w+)":/g,"$1:")+' },';
-  navigator.clipboard.writeText(code).then(function(){
-    toast("복사했어요 — curriculum.js 에 붙여넣으세요");
-  },function(){ prompt("복사해서 curriculum.js 에 붙여넣으세요", code); });
+  toast("추가했어요. 정식 등록은 캣샘에게 부탁하세요");
 }
 function dropExtra(id){
   EXTRA=EXTRA.filter(function(n){ return n.id!==id; });
   Object.keys(PLAN).forEach(function(k){
     PLAN[k]=PLAN[k].filter(function(a){ return a.node!==id; }); });
-  jsave(LS.extra,EXTRA); jsave(LS.plan,PLAN);
+  jsave(LS.extra,EXTRA); jsave(LS.plan,PLAN); schedPush();
   if(UI.sel===id) UI.sel=null;
   T=tree(); draw(); toast("임시 노드를 지웠어요");
 }
 
 /* ==========================================================
-   계획 저장 · 불러오기
-   ========================================================== */
-function savePlan(){
-  const doc={ kind:"catstudy-plan", version:1, saved:todayKey(), plan:PLAN, extra:EXTRA };
-  const blob=new Blob([JSON.stringify(doc,null,2)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="계획.json";
-  a.click(); URL.revokeObjectURL(a.href);
-  toast("계획.json 을 내려받았어요 — 프로젝트 폴더에 두세요");
-}
-function importPlan(el){
-  const f=el.files&&el.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=function(){
-    try{
-      const d=JSON.parse(r.result);
-      if(d.kind!=="catstudy-plan") throw 0;
-      PLAN=d.plan||{}; EXTRA=d.extra||[];
-      jsave(LS.plan,PLAN); jsave(LS.extra,EXTRA);
-      T=tree(); chipSel=null; draw();
-      toast("계획을 불러왔어요");
-    }catch(e){ toast("계획 파일이 아니에요"); }
-    el.value="";
-  };
-  r.readAsText(f);
-}
-
-/* ==========================================================
-   아이 앱과 주고받기 (Supabase — study-cat 전용 프로젝트라 코드 입력 없이 고정 코드)
-   계획은 catstudy_plan 표로 내려보내고, 완료 표시는 아이 기록(catstudy_state)에서 읽는다.
+   아이 앱·캣샘과 자동 동기화 (Supabase — study-cat 전용 프로젝트라 고정 코드)
+   계획의 원본은 서버(catstudy_plan) 하나다.
+   - 열 때: 서버 계획이 더 새로우면 받아온다 (캣샘·다른 PC가 고친 것 반영)
+   - 고칠 때: 잠깐 뒤 자동으로 서버에 올린다 (보내기 버튼 없음)
+   - 완료 표시: 아이 기록(catstudy_state)의 planDone 을 자동으로 읽어 맞춘다
    ========================================================== */
 const SB={url:"https://wlkyqgfpoenyumudpxle.supabase.co",key:"sb_publishable_fPJ7glllJc9KqdDZmMIwXg_F01uTH5y"};
 const FAM_CODE="CAT-STUDY1";
@@ -929,22 +900,54 @@ function planDoc(){
   return { kind:"catstudy-plan", version:1, savedAt:new Date().toISOString(),
            plan:PLAN, extra:EXTRA, names:planNames(), cmd:{ops:CMDQ} };
 }
-function pushPlan(){
-  const c=famCode(); if(!c) return;
-  toast("계획을 올리는 중…");
-  rpc("catplan_put",{p_code:c,p_doc:planDoc()}).then(function(){
-    toast("보냈어요 — 아이 앱 달력에서 [계획 새로 받기]");
+let pushTimer=null;
+function syncNote(t){ const el=$("syncState"); if(el) el.textContent=t; }
+function hhmm(){ const d=new Date();
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+
+/* 계획을 고치면 잠깐 뒤 자동 전송 (여러 번 고쳐도 한 번만) */
+function schedPush(){ clearTimeout(pushTimer); pushTimer=setTimeout(pushNow,1200); }
+function pushNow(){
+  const doc=planDoc();
+  return rpc("catplan_put",{p_code:famCode(),p_doc:doc}).then(function(){
+    jsave(LS.syncAt,doc.savedAt);
+    syncNote("서버에 저장됨 "+hhmm());
+    return true;
   },function(e){
-    toast("못 보냈어요 ("+e.message+") — supabase-자료.sql 을 Run 했는지 확인하세요");
+    syncNote("전송 실패 — 인터넷 확인");
+    toast("서버 전송 실패 ("+e.message+") — 계획은 이 PC에 남아 있어요");
+    return false;
   });
 }
-/* 아이 앱이 save() 마다 올리는 기록 안의 planDone 을 읽어 계획에 반영 */
-function pullDone(){
-  const c=famCode(); if(!c) return;
-  toast("완료를 받아오는 중…");
-  rpc("catstudy_get",{p_code:c}).then(function(rows){
+
+/* 열 때 한 번: 서버 계획 받아오기 → 아이 완료 표시 맞추기 */
+function syncFromServer(){
+  syncNote("서버 확인 중…");
+  rpc("catplan_get",{p_code:famCode()}).then(function(rows){
     const r=rows&&rows[0];
-    if(!r||!r.doc){ toast("아이 기록이 아직 없어요 (아이 폰에서 자동 저장을 켰나요?)"); return; }
+    const cnt=function(p){ return Object.keys(p||{}).reduce(function(t,k){ return t+(p[k]||[]).length; },0); };
+    if(r&&r.doc&&r.doc.kind==="catstudy-plan"&&r.doc.savedAt
+       && r.doc.savedAt!==jload(LS.syncAt,"")){
+      if(cnt(r.doc.plan)===0 && cnt(PLAN)>0){
+        /* 서버는 비었는데 이 PC에는 계획이 있다 — 지우지 말고 내 것을 올린다 (첫 동기화 보호) */
+        schedPush();
+      }else{
+        /* 캣샘이나 다른 PC가 올린 더 새로운 계획 — 서버가 원본이므로 받아들인다 */
+        PLAN=r.doc.plan||{}; EXTRA=r.doc.extra||[];
+        jsave(LS.plan,PLAN); jsave(LS.extra,EXTRA); jsave(LS.syncAt,r.doc.savedAt);
+        T=tree(); chipSel=null; draw();
+        toast("서버의 최신 계획을 받았어요");
+      }
+    }
+    syncNote("동기화됨 "+hhmm());
+    pullDoneAuto();
+  },function(){ syncNote("오프라인 — 이 PC에만 저장 중"); });
+}
+/* 아이 앱이 save() 마다 올리는 기록 안의 planDone 을 읽어 계획에 반영 */
+function pullDoneAuto(){
+  rpc("catstudy_get",{p_code:famCode()}).then(function(rows){
+    const r=rows&&rows[0];
+    if(!r||!r.doc) return;
     const done=r.doc.planDone||{};
     let hit=0;
     Object.keys(PLAN).forEach(function(k){
@@ -953,9 +956,73 @@ function pullDone(){
         if(on!==!!a.done){ a.done=on; hit++; }
       });
     });
-    jsave(LS.plan,PLAN); draw();
-    toast(hit?(hit+"개를 맞췄어요"):"바뀐 게 없어요");
-  },function(e){ toast("못 받았어요 ("+e.message+")"); });
+    if(hit){ jsave(LS.plan,PLAN); draw(); schedPush();
+      toast("아이가 완료한 "+hit+"개를 표시했어요"); }
+  },function(){});
+}
+
+/* ==========================================================
+   학생 기록 패널 — 학생기록.js(캣샘이 관리)를 보여준다. 여기서는 읽기만.
+   ========================================================== */
+const ST_SUBJ={math:"수학",english:"영어",eng:"영어"};
+function stOpen(){ $("stWrap").hidden=false; stRender(); }
+function stClose(){ $("stWrap").hidden=true; }
+function stRender(){
+  if(typeof STUDENT==="undefined"){
+    $("stBody").innerHTML='<div class="acard full"><div class="amini">학생기록.js 파일이 없어요 — '
+      +'캣샘에게 "학생기록 만들어줘"라고 부탁하세요.</div></div>';
+    return;
+  }
+  const s=STUDENT, lv=(s.profile&&s.profile.level)||{};
+  $("stSub").textContent="마지막 갱신 "+(s.updated||"—")+" · 고치려면 캣샘에게 말로 시키세요";
+  let h="";
+
+  h+='<div class="acard full"><h3>지금 수준</h3>';
+  h+='<div class="alab">학년</div><div class="amini">'+esc((s.profile&&s.profile.grade)||"—")+'</div>';
+  Object.keys(lv).forEach(function(k){
+    h+='<div class="alab">'+esc(ST_SUBJ[k]||k)+'</div><div class="amini">'+esc(lv[k])+'</div>';
+  });
+  ((s.profile&&s.profile.traits)||[]).forEach(function(t){
+    h+='<div class="arow"><span class="q">'+esc(t)+'</span></div>';
+  });
+  h+='</div>';
+
+  const d=s.direction||{};
+  h+='<div class="acard"><h3>학습방향</h3>';
+  if(d.goal)h+='<div class="alab">큰 방향</div><div class="amini">'+esc(d.goal)+'</div>';
+  if(d.math)h+='<div class="alab">수학</div><div class="amini">'+esc(d.math)+'</div>';
+  if(d.english)h+='<div class="alab">영어</div><div class="amini">'+esc(d.english)+'</div>';
+  if(d.focus)h+='<div class="alab">지금 집중</div><div class="amini">'+esc(d.focus)+'</div>';
+  h+='</div>';
+
+  h+='<div class="acard"><h3>학습방법 원칙</h3>';
+  (s.methods||[]).forEach(function(m){
+    h+='<div class="arow"><span class="q">'+esc(m)+'</span></div>';
+  });
+  if(!(s.methods||[]).length)h+='<div class="amini">아직 없어요.</div>';
+  h+='</div>';
+
+  const ev=s.evals||[];
+  h+='<div class="acard full"><h3>평가 기록 · '+ev.length+'건</h3>';
+  if(!ev.length)h+='<div class="amini">아직 평가 기록이 없어요. 캣샘이 평가할 때마다 여기에 쌓입니다.</div>';
+  ev.forEach(function(e){
+    h+='<div class="arow"><span class="q"><b style="color:var(--orange)">'
+      +esc(ST_SUBJ[e.subject]||e.subject||"")+'</b> '+esc(e.what||"")
+      +' → '+esc(e.result||"")
+      +(e.next?' <span class="x">다음: '+esc(e.next)+'</span>':"")
+      +'</span><span class="x">'+esc(e.date||"")+'</span></div>';
+  });
+  h+='</div>';
+
+  const jn=s.journal||[];
+  h+='<div class="acard full"><h3>캣샘 일지</h3>';
+  if(!jn.length)h+='<div class="amini">아직 일지가 없어요.</div>';
+  jn.forEach(function(e){
+    h+='<div class="arow"><span class="q">'+esc(e.note||"")+'</span><span class="x">'+esc(e.date||"")+'</span></div>';
+  });
+  h+='</div>';
+
+  $("stBody").innerHTML=h;
 }
 
 /* ==========================================================
@@ -1020,10 +1087,7 @@ function queueOp(op,label){
   clearTimeout(cmdTimer); cmdTimer=setTimeout(adPush,700);
 }
 function adPush(){
-  const c=famCode(); if(!c)return;
-  rpc("catplan_put",{p_code:c,p_doc:planDoc()}).then(function(){
-    toast("보냈어요 — 아이가 앱을 열면 적용돼요");
-  },function(e){toast("전송 실패 ("+e.message+") — [다시 보내기]를 눌러 주세요");});
+  pushNow().then(function(ok){ if(ok) toast("보냈어요 — 아이가 앱을 열면 적용돼요"); });
 }
 function adCancel(id){
   CMDQ=CMDQ.filter(function(o){return o.id!==id;});
@@ -1309,10 +1373,6 @@ function draw(){ drawSum(); drawMap(); drawDetail(); drawCal(); }
   if(!UI.open) UI.open={};
   ROOT  = jload(LS.root,null) || ROOT;
   CMDQ  = jload(LS.cmdq,[]);
-  $("rootPath").value=ROOT;
-  $("rootPath").addEventListener("change",function(){
-    ROOT=normRoot(); $("rootPath").value=ROOT; jsave(LS.root,ROOT); toast("폴더 경로를 기억했어요");
-  });
 
   T=tree();
   if(!Object.keys(UI.open).length){
@@ -1321,6 +1381,7 @@ function draw(){ drawSum(); drawMap(); drawDetail(); drawCal(); }
   }
   document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeChip(); });
   setMonth(new Date());
+  syncFromServer();
 })();
 </script>
 </body>
