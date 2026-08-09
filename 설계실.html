@@ -410,7 +410,7 @@ const DAYN = ["일","월","화","수","목","금","토"];
 const LS = { plan:"catstudy_plan", root:"catstudy_root", ui:"catstudy_ui", extra:"catstudy_nodes", cmdq:"catstudy_cmdq", syncAt:"catstudy_syncat" };
 
 let PLAN = {};        // { "2026-08": [ {i, node, date, s, done} ] }
-let ROOT = "F:/projects/study-cat";
+let ROOT = "F:/projects/study-cat";   // 로컬 파일로 열면 initRoot() 가 실제 경로로 덮어쓴다
 let UI   = { open:{}, sel:null };
 let EXTRA = [];       // 설계실에서 추가한 노드 (curriculum.js 에 넣기 전 임시)
 let ym, cursor;       // 보고 있는 달
@@ -820,9 +820,17 @@ function tile(label,v,unit,cls){
    캣샘 호출 — VS Code 를 열어 Claude Code(캣샘)와 대화한다.
    계획·학습방법·학생 기록 관리는 전부 캣샘에게 말로 시킨다.
    ========================================================== */
+/* 이 파일이 놓인 실제 폴더를 ROOT 로 삼는다 — 집 E:, 가게 F:, USB 문자가 바뀌어도 맞는다.
+   (브라우저에서 file:// 로 열었을 때만 알 수 있다) */
+function initRoot(){
+  if(location.protocol!=="file:") return false;
+  var p=decodeURIComponent(location.pathname).replace(/^\/+/,"").replace(/\/[^\/]*$/,"");
+  if(!/^[a-zA-Z]:\//.test(p)) return false;
+  ROOT=p; jsave(LS.root,ROOT); return true;
+}
 function catCall(){
   location.href="vscode://file/"+encodeURI(ROOT);
-  toast("VS Code가 열리면 Claude Code에서 캣샘을 부르세요");
+  toast("VS Code로 여는 중 · "+ROOT);
 }
 /* 프로젝트 경로는 PC마다 다를 수 있다(USB 드라이브 문자) — 캣샘 호출이 안 열리면 여기로 고친다 */
 function catPath(){
@@ -1384,7 +1392,7 @@ function draw(){ drawSum(); drawMap(); drawDetail(); drawCal(); }
   EXTRA = jload(LS.extra,[]);
   UI    = jload(LS.ui,{open:{},sel:null});
   if(!UI.open) UI.open={};
-  ROOT  = jload(LS.root,null) || ROOT;
+  if(!initRoot()) ROOT = jload(LS.root,null) || ROOT;
   CMDQ  = jload(LS.cmdq,[]);
 
   T=tree();
