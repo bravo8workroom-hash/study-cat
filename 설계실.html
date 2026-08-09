@@ -401,7 +401,6 @@ h2{font-family:var(--mo);font-weight:800;font-size:12px;letter-spacing:1.4px;
 <div class="toast" id="toast"></div>
 
 <script src="curriculum.js"></script>
-<script src="학생기록.js"></script>
 <script>
 /* ==========================================================
    상태
@@ -877,6 +876,7 @@ function dropExtra(id){
    ========================================================== */
 const SB={url:"https://wlkyqgfpoenyumudpxle.supabase.co",key:"sb_publishable_fPJ7glllJc9KqdDZmMIwXg_F01uTH5y"};
 const FAM_CODE="CAT-STUDY1";
+const ST_CODE="CAT-STUDY2";   /* 학생 기록 보관 칸 — 캣샘이 캣샘도구.js 로 관리 */
 function rpc(fn,body){
   return fetch(SB.url+"/rest/v1/rpc/"+fn,{method:"POST",
     headers:{"Content-Type":"application/json","apikey":SB.key,"Authorization":"Bearer "+SB.key},
@@ -962,15 +962,28 @@ function pullDoneAuto(){
 }
 
 /* ==========================================================
-   학생 기록 패널 — 학생기록.js(캣샘이 관리)를 보여준다. 여기서는 읽기만.
+   학생 기록 패널 — 서버(비공개 Supabase)의 학생 기록을 보여준다. 여기서는 읽기만.
+   기록의 원본은 서버 하나 — 캣샘이 캣샘도구.js(학생받기/학생올리기)로 관리한다.
    ========================================================== */
 const ST_SUBJ={math:"수학",english:"영어",eng:"영어"};
-function stOpen(){ $("stWrap").hidden=false; stRender(); }
+let STUDENT=null;
+function stOpen(){
+  $("stWrap").hidden=false;
+  $("stBody").innerHTML='<div class="acard full"><div class="amini">서버에서 받아오는 중…</div></div>';
+  rpc("catplan_get",{p_code:ST_CODE}).then(function(rows){
+    const r=rows&&rows[0];
+    STUDENT=(r&&r.doc&&r.doc.kind==="catstudy-student")?r.doc:null;
+    stRender(STUDENT?"":"아직 학생 기록이 없어요 — 캣샘에게 \"학생기록 만들어줘\"라고 부탁하세요.");
+  },function(){
+    STUDENT=null;
+    stRender("서버에 연결이 안 돼요 — 인터넷을 확인하고 다시 열어 주세요.");
+  });
+}
 function stClose(){ $("stWrap").hidden=true; }
-function stRender(){
-  if(typeof STUDENT==="undefined"){
-    $("stBody").innerHTML='<div class="acard full"><div class="amini">학생기록.js 파일이 없어요 — '
-      +'캣샘에게 "학생기록 만들어줘"라고 부탁하세요.</div></div>';
+function stRender(msg){
+  if(!STUDENT){
+    $("stBody").innerHTML='<div class="acard full"><div class="amini">'+esc(msg||"")+'</div></div>';
+    $("stSub").textContent="아이의 수준·학습방향·평가 — 캣샘이 관리해요";
     return;
   }
   const s=STUDENT, lv=(s.profile&&s.profile.level)||{};
