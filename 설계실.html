@@ -672,8 +672,8 @@ function drawDetail(){
       const d=new Date(a.date+"T00:00:00");
       h+='<div class="dtrow">'
         + '<span class="d">'+(d.getMonth()+1)+'/'+d.getDate()+'('+DAYN[d.getDay()]+')</span>'
-        + '<button class="sbtn'+(a.s===1?" on":"")+'" onclick="setSession('+a.i+',1)">세션1</button>'
-        + '<button class="sbtn'+(a.s===2?" on":"")+'" onclick="setSession('+a.i+',2)">세션2</button>'
+        + '<button class="sbtn'+(a.s===1?" on":"")+'" onclick="setSession('+a.i+',1)">1단계</button>'
+        + '<button class="sbtn'+(a.s===2?" on":"")+'" onclick="setSession('+a.i+',2)">2단계</button>'
         + '<span class="grow"></span>'
         + '<button class="sbtn'+(a.done?" on":"")+'" onclick="toggleDone('+a.i+')">'+(a.done?"완료":"완료?")+'</button>'
         + '<button class="sbtn" onclick="removeAssign('+a.i+')">삭제</button>'
@@ -755,7 +755,7 @@ function drawCal(){
       const bar=document.createElement("div");
       bar.className="actbar";
       bar.innerHTML='<span class="nm">'+esc(n.title)+'</span>'
-        + '<button class="btn sm" onclick="setSession('+a.i+','+(a.s===1?2:1)+')">세션 '+(a.s===1?2:1)+'로</button>'
+        + '<button class="btn sm" onclick="setSession('+a.i+','+(a.s===1?2:1)+')">'+(a.s===1?2:1)+'단계로</button>'
         + '<button class="btn sm" onclick="toggleDone('+a.i+')">'+(a.done?"완료 취소":"완료")+'</button>'
         + '<button class="btn sm" onclick="startMove()">'+(moving?"옮기는 중… 날짜를 누르세요":"날짜 옮기기")+'</button>'
         + '<button class="btn sm danger" onclick="removeAssign('+a.i+')">삭제</button>'
@@ -1152,7 +1152,7 @@ function adRender(){
   if(d){
     const wk=adWeek(d);
     h+=adTile("이름",esc(st.name||"—"))+adTile("포인트",(d.points||0)+"P")+adTile("연속",(d.streak||0)+"일")
-      +adTile("이번 주",wk.days+"일 · "+wk.sess+"세션")
+      +adTile("이번 주",wk.days+"일 · "+wk.sess+"단계")
       +adTile("영어 정답률",wk.acc===null?"—":wk.acc+"%")
       +adTile("수학 정답률",wk.macc===null?"—":wk.macc+"%")
       +adTile("오답 저장소",(d.wrongLog||[]).length+"문제")
@@ -1198,7 +1198,7 @@ function adRender(){
     +'<div class="amini">왼쪽=첫날 · 오른쪽=마지막 날 (하루짜리면 같게 두세요)</div>'
     +'<div class="aseg"><button class="btn sm go" onclick="adExam(true)">켜기</button>'
     +'<button class="btn sm" onclick="adExam(false)">끄기</button></div>'
-    +'<div class="amini">켜면 아이 홈에 D-day가 뜨고, D-21부터 세션 2가 암기 → 유사 문제 → 오답 순으로 바뀝니다.</div></div>';
+    +'<div class="amini">켜면 아이 홈에 D-day가 뜨고, D-21부터 2단계가 암기 → 유사 문제 → 오답 순으로 바뀝니다.</div></div>';
 
   /* Claude와 파일 주고받기 */
   h+='<div class="acard"><h3>Claude와 파일 주고받기</h3>'
@@ -1257,10 +1257,10 @@ function adRender(){
 
   /* 개발자 메뉴 */
   h+='<div class="acard full"><h3>🛠 개발자 메뉴 (아이 폰에 적용)</h3>';
-  h+='<div class="alab">세션 2 강제 전환 (요일 무시)</div>'
+  h+='<div class="alab">2단계 강제 전환 (요일 무시)</div>'
     +segBtns([["","자동(요일)"],["eng","영어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"]].map(function(p){
-      return {on:(pendDev("k2")||"")===p[0]&&!!d,label:p[1],click:"adDev('k2','"+p[0]+"','세션2 강제: "+p[1]+"')"};}));
-  h+='<div class="alab">세션 순서 잠금 (1→2→3)</div>'
+      return {on:(pendDev("k2")||"")===p[0]&&!!d,label:p[1],click:"adDev('k2','"+p[0]+"','2단계 강제: "+p[1]+"')"};}));
+  h+='<div class="alab">단계 순서 잠금 (1→2→3)</div>'
     +segBtns([[false,"평소대로 잠금"],[true,"잠금 해제"]].map(function(p){
       return {on:!!pendDev("unlock")===p[0]&&!!d,label:p[1],click:"adDev('unlock',"+p[0]+",'순서 잠금: "+p[1]+"')"};}));
   h+='<div class="alab">수학 진단 · 샘플 자료</div><div class="aseg">'
@@ -1271,7 +1271,7 @@ function adRender(){
     +'<button class="btn sm" onclick="queueOp({t:\'sampleClear\'},\'샘플 자료만 지우기\')">샘플만 지우기</button></div>';
   h+='<div class="alab">테스트 모드 · 화면 확인</div><div class="aseg">'
     +'<button class="btn sm go" onclick="window.open(\'index.html?test=1\',\'_blank\')">테스트 모드 열기 (모든 학습 페이지)</button></div>'
-    +'<div class="amini">모든 학습 페이지(세션 1·2·3, 받아쓰기, 스펠링, 문장 만들기, 오답노트…)를 버튼 하나로 열어 실제 화면 그대로 확인해요. 저장이 안 되는 샌드박스라 마음껏 눌러 봐도 아이 기록에 영향이 없어요.</div>';
+    +'<div class="amini">모든 학습 페이지(1·2·3단계, 받아쓰기, 스펠링, 문장 만들기, 오답노트…)를 버튼 하나로 열어 실제 화면 그대로 확인해요. 저장이 안 되는 샌드박스라 마음껏 눌러 봐도 아이 기록에 영향이 없어요.</div>';
   h+='</div>';
 
   /* 위험 구역 */

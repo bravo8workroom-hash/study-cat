@@ -409,12 +409,12 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       </div>
       <div class="statrow">
         <div class="stat o"><b id="stStreak">0</b><span>연속 출석</span></div>
-        <div class="stat"><b id="stToday">0/3</b><span>오늘 세션</span></div>
+        <div class="stat"><b id="stToday">0/3</b><span>오늘 단계</span></div>
         <div class="stat"><b id="stWords">0</b><span>배운 단어</span></div>
       </div>
     </div>
     <div class="drips"></div>
-    <div class="sect"><h2>오늘의 세션</h2><div class="sub" id="todayDate"></div></div>
+    <div class="sect"><h2>오늘의 단계</h2><div class="sub" id="todayDate"></div></div>
     <div id="sessionList"></div>
     <div id="examStrip"></div>
     <div id="mathStrip"></div>
@@ -513,7 +513,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
   <!-- ============ 기록 ============ -->
   <section class="screen" id="scr-stats">
     <header><div class="logo">기록</div><div class="pill cream" id="statPoint"></div></header>
-    <div class="sect"><h2>이번 주</h2><div class="sub">세션 3개 = 하루 완성</div></div>
+    <div class="sect"><h2>이번 주</h2><div class="sub">단계 3개 = 하루 완성</div></div>
     <div class="weekgrid" id="weekGrid"></div>
     <div id="statCards"></div>
     <div class="sect" style="margin-top:20px"><h2>자주 틀리는 단어</h2><div class="sub">복습에 자동으로 나와</div></div>
@@ -625,10 +625,10 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
     <div class="setrow" style="border:1.5px dashed var(--mist)">
       <div class="k">🛠 개발자 메뉴</div>
       <p class="tip" style="margin:2px 0 12px">여기서 바꾼 것은 이 테스트 화면에만 적용돼요.</p>
-      <div class="k">세션 2 강제 전환 (요일 무시)</div>
+      <div class="k">2단계 강제 전환 (요일 무시)</div>
       <div class="segs" id="devSegK2" style="flex-wrap:wrap"></div>
       <p class="tip" style="margin:6px 0 0">평소엔 화·목=수학, 토=주간 복습, 나머지=영어예요.</p>
-      <div class="k" style="margin-top:14px">세션 순서 잠금 (1→2→3)</div>
+      <div class="k" style="margin-top:14px">단계 순서 잠금 (1→2→3)</div>
       <div class="segs" id="devSegLock"></div>
       <div class="k" style="margin-top:14px">수학 출발점 진단</div>
       <button class="setbtn" style="background:var(--cream);margin-bottom:8px" onclick="devDiagSkip()">진단 건너뛰기 → 3단계로 (사다리 확인)</button>
@@ -2131,9 +2131,9 @@ function renderHome(){
   const log=dayLog();
   const name=S.settings.name||"친구";
   const doneN=log.s.filter(Boolean).length;
-  const msgs=doneN===0?["안녕, "+name+"! 오늘 첫 세션 가볍게 시작해 볼까?"]:
+  const msgs=doneN===0?["안녕, "+name+"! 오늘 첫 단계 가볍게 시작해 볼까?"]:
     doneN===3?["오늘 미션 올클리어! 푹 쉬어도 돼 😸"]:
-    ["좋아, "+doneN+"개 끝냈어! 남은 세션도 가보자."];
+    ["좋아, "+doneN+"개 끝냈어! 남은 단계도 가보자."];
   $("heroMsg").innerHTML=msgs[0]+'<div class="sub">틀리는 건 뇌가 운동하는 중이라는 뜻!</div>';
   $("pointPill").textContent=S.points.toLocaleString()+"P";
   $("levelName").textContent="LV."+level()+" "+LEVEL_NAMES[level()-1];
@@ -2152,10 +2152,11 @@ function renderHome(){
     let desc=sd.desc;
     if(sd.n===1){
       const n1=newWordsToday().length;
-      desc=n1?("새 단어 "+n1+"개 · "+curStage()+"단계"):dictOpen()?(curStage()+"단계 승급 받아쓰기!"):"오늘 새 단어 없음";
+      desc=n1?("새 단어 "+n1+"개 · 단어장 "+curStage()+"단계"):dictOpen()?("단어장 "+curStage()+"단계 승급 받아쓰기!"):"오늘 새 단어 없음";
     }
     let catKey=sd.cat,ttl=sd.title;
-    if(sd.n===2){
+    if(sd.n===2&&!S.math.diagDone){ttl="출발점 찾기";desc="20문제만 풀면 너에게 딱 맞는 시작점을 찾아줄게";catKey="calc";}
+    else if(sd.n===2){
       const k=sessionKind();
       if(k==="math"){ttl="계산 연습";desc=mathDesc();catKey="calc";}
       else if(k==="deck"){const dd0=pendingDecks()[0];ttl="암기 카드";desc=(dd0?dd0.name:"암기 세트")+" · 오늘 "+(dd0?Math.min(12,deckDue(dd0).length):0)+"장";catKey="flashcard";}
@@ -2165,15 +2166,15 @@ function renderHome(){
       else desc="오늘 단어 + 복습 "+dueN+"개";
     }
     if(sd.n===3)desc="카드 복습 + 스펠링 쓰기 · 자기 전 추천";
-    b.innerHTML='<img src="'+CATS[catKey]+'"><div><div class="t">세션 '+sd.n+' · '+ttl+'</div><div class="d">'+(done?"완료! 잘했어":locked?"먼저 세션 "+i+(i===2?"를":"을")+" 끝내자":desc)+'</div></div><div class="go">'+(done?"✓":locked?"🔒":"▶")+'</div>';
+    b.innerHTML='<img src="'+CATS[catKey]+'"><div><div class="t">'+sd.n+'단계 · '+ttl+'</div><div class="d">'+(done?"완료! 잘했어":locked?"먼저 "+i+"단계를 끝내자":desc)+'</div></div><div class="go">'+(done?"✓":locked?"🔒":"▶")+'</div>';
     if(!done&&!locked)b.onclick=()=>startSession(sd.n);
-    if(done)b.onclick=()=>toast("이미 완료한 세션이야 ✓");
+    if(done)b.onclick=()=>toast("이미 완료한 단계야 ✓");
     list.appendChild(b);
   });
   renderExamStrip();
   renderMathStrip();
   renderExtraStrips();
-  $("homeTip").innerHTML=doneN<3?"💡 <b>세션 3(복습)은 자기 직전에!</b> 자는 동안 뇌가 오늘 배운 걸 오래 남는 기억으로 바꿔줘.":"🌙 오늘은 끝! 푹 자는 것도 공부의 한 부분이야.";
+  $("homeTip").innerHTML=doneN<3?"💡 <b>3단계(복습)는 자기 직전에!</b> 자는 동안 뇌가 오늘 배운 걸 오래 남는 기억으로 바꿔줘.":"🌙 오늘은 끝! 푹 자는 것도 공부의 한 부분이야.";
 }
 /* ================= 세션 진행 ================= */
 let cur={session:0,cards:[],idx:0,quiz:[],qidx:0,correct:0,fromLearn:false};
@@ -2191,6 +2192,7 @@ function startSession(n){
     cur.cards=ids.slice();
     showCard();
   }else if(n===2){
+    if(!S.math.diagDone){startDiag(2);return;}
     const kind=sessionKind();
     if(kind==="deck"){const d0=pendingDecks()[0];if(d0){startDeck(d0.id,2);return;}}
     else if(kind==="set"){const s0=pendingSets()[0];if(s0){startSet(s0.id,2);return;}}
@@ -2211,7 +2213,7 @@ function startSession(n){
   }else{
     const log=dayLog();
     const ids=[...new Set([...log.newIds.filter(id=>S.words[id]),...log.wrong])];
-    if(!ids.length){toast("오늘 배운 게 아직 없어! 세션 1부터 시작해");return;}
+    if(!ids.length){toast("오늘 배운 게 아직 없어! 1단계부터 시작해");return;}
     cur.cards=shuffle(ids);cur.session3quiz=true;
     showCard();
   }
@@ -2352,13 +2354,13 @@ function finishSession(){
   const acc=cur.quiz.length?Math.round(cur.correct/cur.quiz.length*100):100;
   const all3=log.s.every(Boolean);
   $("doneCat").src=cur.session===3?CATS.sleeplap:all3?CATS.trophy:cur.session===1?CATS.highfive:CATS.passed;
-  $("doneTitle").textContent=cur.session===3?"오늘 복습 끝!":all3?"오늘 올클리어!":"세션 "+cur.session+" 완료!";
+  $("doneTitle").textContent=cur.session===3?"오늘 복습 끝!":all3?"오늘 올클리어!":cur.session+"단계 완료!";
   $("donePoint").innerHTML=firstTime?"+"+pts+'<small>P</small>':'<small>복습 완료</small>';
   let msg="정답률 "+acc+"%";
   if(acc<50)msg="정답률 "+acc+"% · 오늘은 어려웠지? 틀린 건 이따 다시 만나서 잡자";
   if(cur.session===1)msg="새 단어 "+cur.cards.length+"개를 만났어. 퀴즈 정답률 "+acc+"%!";
   if(cur.session===3)msg="이제 자면 돼. 자는 동안 오늘 단어가 머리에 저장돼 🌙";
-  if(all3&&cur.session!==3)msg+=" · 3세션 보너스 +30P!";
+  if(all3&&cur.session!==3)msg+=" · 하루 3단계 보너스 +30P!";
   $("doneMsg").textContent=msg;
   const card=$("doneCard");card.classList.remove("pop");void card.offsetWidth;card.classList.add("pop");
   show("scr-done");
@@ -2535,14 +2537,14 @@ function renderDev(){
   [["","자동(요일)"],["eng","영어"],["math","수학"],["week","주간 복습"],["deck","암기 카드"],["set","문제 세트"]].forEach(function(p){
     const b=document.createElement("button");
     b.className="seg"+((S.dev.k2||"")===p[0]?" on":"");b.textContent=p[1];b.style.flex="1 1 30%";
-    b.onclick=function(){S.dev.k2=p[0];save();renderDev();toast(p[0]?"세션 2를 강제로 바꿨어요 — 홈에서 확인!":"요일대로 돌아갔어요");};
+    b.onclick=function(){S.dev.k2=p[0];save();renderDev();toast(p[0]?"2단계를 강제로 바꿨어요 — 홈에서 확인!":"요일대로 돌아갔어요");};
     k2.appendChild(b);
   });
   const lk=$("devSegLock");lk.innerHTML="";
   [[false,"평소대로 잠금"],[true,"잠금 해제"]].forEach(function(p){
     const b=document.createElement("button");
     b.className="seg"+(!!S.dev.unlock===p[0]?" on":"");b.textContent=p[1];
-    b.onclick=function(){S.dev.unlock=p[0];save();renderDev();toast(p[0]?"세션을 순서 없이 열 수 있어요":"1→2→3 순서 잠금으로 돌아갔어요");};
+    b.onclick=function(){S.dev.unlock=p[0];save();renderDev();toast(p[0]?"단계를 순서 없이 열 수 있어요":"1→2→3 순서 잠금으로 돌아갔어요");};
     lk.appendChild(b);
   });
   renderDevView();
@@ -2613,15 +2615,15 @@ function testMake(){
   startMake();
 }
 const TEST_PAGES=[
-  ["🏠 홈 (오늘 세션 카드)",function(){tab("home");}],
-  ["세션 1 · 새 단어 카드",function(){startSession(1);}],
-  ["세션 2 · 단어 퀴즈 (영어)",function(){testKind("eng");}],
-  ["세션 2 · 계산 연습 (수학)",function(){testKind("math");}],
-  ["세션 2 · 주간 복습 (영어+수학)",function(){testKind("week");}],
-  ["세션 2 · 암기 카드",function(){testKind("deck");}],
-  ["세션 2 · 문제 세트 (시험 유사)",function(){testKind("set");}],
-  ["세션 2 · 오답 다시 풀기",function(){startAgain(2);}],
-  ["세션 3 · 자기 전 복습",function(){startSession(3);}],
+  ["🏠 홈 (오늘 단계 카드)",function(){tab("home");}],
+  ["1단계 · 새 단어 카드",function(){startSession(1);}],
+  ["2단계 · 단어 퀴즈 (영어)",function(){testKind("eng");}],
+  ["2단계 · 계산 연습 (수학)",function(){testKind("math");}],
+  ["2단계 · 주간 복습 (영어+수학)",function(){testKind("week");}],
+  ["2단계 · 암기 카드",function(){testKind("deck");}],
+  ["2단계 · 문제 세트 (시험 유사)",function(){testKind("set");}],
+  ["2단계 · 오답 다시 풀기",function(){startAgain(2);}],
+  ["3단계 · 자기 전 복습",function(){startSession(3);}],
   ["받아쓰기 시험 (승급)",function(){startDict(Math.min(curStage(),STAGE_N),null);}],
   ["스펠링 연습",function(){startSpell(0);}],
   ["문장 만들기",function(){testMake();}],
@@ -2677,7 +2679,7 @@ function dvWeek(){
   h+='<h5>수학 부분 예시</h5>';buildMathSet(amt(6)).forEach(function(p){h+=dvMathItem(p);});
   h+='<h5>영어 부분 예시</h5>';
   const es=buildEngSet(amt(6));
-  if(!es.length)h+='<div class="dvi x">아직 배운 단어가 없어서 예시를 못 만들어요. 세션 1을 한 번 하면 생겨요.</div>';
+  if(!es.length)h+='<div class="dvi x">아직 배운 단어가 없어서 예시를 못 만들어요. 1단계를 한 번 하면 생겨요.</div>';
   else es.forEach(function(p){h+='<div class="dvi"><b>'+esc(p.q)+'</b> — 무슨 뜻일까?<br>'+dvOpts(p.opts,p.a)+'</div>';});
   return h;
 }
@@ -2713,7 +2715,7 @@ function dvWrong(){
 function fbMoodName(k){let n=k;FB_MOOD.forEach(function(p){if(p[0]===k)n=p[1];});return n;}
 function fbLines(){
   return (S.fb||[]).slice().reverse().map(function(e){
-    const head=(e.d||"")+" · "+((e.ctx&&e.ctx.title)||"")+(e.ctx&&e.ctx.sess?" (세션 "+e.ctx.sess+")":"");
+    const head=(e.d||"")+" · "+((e.ctx&&e.ctx.title)||"")+(e.ctx&&e.ctx.sess?" ("+e.ctx.sess+"단계)":"");
     const pick=[e.mood?fbMoodName(e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
     return {head:head,pick:pick,txt:e.txt||""};
   });
@@ -3000,17 +3002,17 @@ function sessionKind(k){
 }
 function mathDesc(){
   if(!S.math.diagDone)return "출발점 찾기 20문제 · 딱 맞는 단계 찾기";
-  return mathLevel()+"단계 "+M_LEVELS[mathLevel()-1].name+" · 10문제";
+  return "사다리 "+mathLevel()+"단계 "+M_LEVELS[mathLevel()-1].name+" · 10문제";
 }
 function renderMathStrip(){
   const el=$("mathStrip");if(!el)return;
-  const done=S.math.diagDone,acc=recentAcc();
+  /* 진단 전에는 스트립 없음 — 출발점 찾기는 2단계 카드가 담당 */
+  if(!S.math.diagDone){el.innerHTML="";return;}
+  const acc=recentAcc();
   let rungs="";for(let i=1;i<=7;i++)rungs+='<div class="rung'+(i<=mathLevel()?" f":"")+'"></div>';
-  const t=done?("수학 사다리 "+mathLevel()+"단계 · "+M_LEVELS[mathLevel()-1].name):"아직 출발점을 안 찾았어";
-  const d=done?(acc===null||acc<0.6?"화·목 세션 2에서 계산 연습을 해":"최근 정답률 "+Math.round(acc*100)+"% · 화·목에 계산 연습")
-              :"20문제만 풀면 너에게 딱 맞는 단계를 찾아줄게";
-  el.innerHTML='<div class="mstrip"'+(done?"":' style="cursor:pointer"')+'><img src="'+CATS.calc+'"><div style="flex:1"><div class="t">'+t+'</div><div class="d">'+d+'</div><div class="ladder">'+rungs+'</div></div><div class="go">'+(done?"":"▶")+'</div></div>';
-  if(!done)el.querySelector(".mstrip").onclick=function(){startDiag();};
+  const t="수학 사다리 "+mathLevel()+"단계 · "+M_LEVELS[mathLevel()-1].name;
+  const d=acc===null||acc<0.6?"화·목 2단계에서 계산 연습을 해":"최근 정답률 "+Math.round(acc*100)+"% · 화·목에 계산 연습";
+  el.innerHTML='<div class="mstrip"><img src="'+CATS.calc+'"><div style="flex:1"><div class="t">'+t+'</div><div class="d">'+d+'</div><div class="ladder">'+rungs+'</div></div><div class="go"></div></div>';
 }
 
 let mc={mode:"math",list:[],idx:0,correct:0,locked:false};
@@ -3021,8 +3023,8 @@ function startMath(kind){
   if(!mc.list.length){toast("문제를 만들지 못했어. 다시 해 볼까?");return;}
   showMathQ();
 }
-function startDiag(){
-  mc={mode:"diag",list:buildDiag(),idx:0,correct:0,locked:false,skip:{},wrongRun:0,lastArea:-1,areaScore:{}};
+function startDiag(asSession){
+  mc={mode:"diag",list:buildDiag(),idx:0,correct:0,locked:false,skip:{},wrongRun:0,lastArea:-1,areaScore:{},asSession:asSession||0};
   showMathQ();
 }
 function showMathQ(){
@@ -3136,13 +3138,20 @@ function finishDiag(){
   }
   lvl=Math.min(7,Math.max(1,lvl));
   S.math.diagDone=true;S.math.level=lvl;S.math.hist=[];S.math.hi=[];S.math.mix=false;
-  S.points+=30;save();
+  if(mc.asSession===2){
+    /* 2단계로 들어온 진단 — 단계 완료로 기록 (+30P는 finishSession이 준다) */
+    save();
+    cur={session:2,cards:[],idx:0,quiz:[],qidx:0,correct:0};
+    finishSession();
+  }else{
+    S.points+=30;save();
+    $("donePoint").innerHTML="+30<small>P</small>";
+    const card=$("doneCard");card.classList.remove("pop");void card.offsetWidth;card.classList.add("pop");
+    show("scr-done");
+  }
   $("doneCat").src=CATS.calc;
   $("doneTitle").textContent="출발점을 찾았어!";
-  $("donePoint").innerHTML="+30<small>P</small>";
-  $("doneMsg").textContent="너한테 딱 맞는 시작은 "+lvl+"단계 · "+M_LEVELS[lvl-1].name+". 여기서부터 한 칸씩 올라가 보자!";
-  const card=$("doneCard");card.classList.remove("pop");void card.offsetWidth;card.classList.add("pop");
-  show("scr-done");
+  $("doneMsg").textContent="너한테 딱 맞는 시작은 사다리 "+lvl+"단계 · "+M_LEVELS[lvl-1].name+". 여기서부터 한 칸씩 올라가 보자!";
 }
 
 /* ================= 3단계: 오답 저장소 · 데이터 주고받기 ================= */
@@ -3210,11 +3219,6 @@ function renderExtraStrips(){
   if(sets.length){
     const s=sets[0];
     h+='<div class="mstrip" style="cursor:pointer" onclick="startSet(\''+s.id+'\')"><img src="'+(CATS.books||CATS.flashcard)+'"><div style="flex:1"><div class="t">새 문제 세트 · '+s.items.length+'문제</div><div class="d">'+esc(s.name)+(sets.length>1?" 외 "+(sets.length-1)+"개":"")+'</div></div><div class="go">▶</div></div>';
-  }
-  const spN=spellCandidates().length;
-  if(spN>=4){
-    const master=spellCandidates().filter(function(id){return S.words[id].spMaster;}).length;
-    h+='<div class="mstrip" style="cursor:pointer" onclick="startSpell(0)"><img src="'+CATS.pencil+'"><div style="flex:1"><div class="t">스펠링 연습 · 10단어</div><div class="d">글자 모으기 → 빈칸 채우기 → 혼자 쓰기 · 혼자 쓰기 성공 '+master+'/'+spN+'</div></div><div class="go">▶</div></div>';
   }
   const nq=noteQueue().length;
   if(nq>=2){
@@ -3824,7 +3828,7 @@ function examPhase(){
   return "final";
 }
 const EXAM_MSG={
-  memo:["시험 범위를 외우는 기간","교과서·프린트 사진 → 암기 카드로 만들어 세션 2에서 외우자"],
+  memo:["시험 범위를 외우는 기간","교과서·프린트 사진 → 암기 카드로 만들어 2단계에서 외우자"],
   set:["문제로 연습하는 기간","문제집 사진으로 만든 유사 문제를 풀 때야. 오답이 쌓이는 게 정상이야"],
   again:["오답을 좁히는 기간","새로 푸는 것보다 틀린 걸 다시 맞히는 게 점수를 올려"],
   final:["마무리 · 새 문제 금지","오답만 다시 보고 평소보다 일찍 자기. 밤샘은 그동안 공부를 버리는 거야"]
@@ -4027,7 +4031,7 @@ function renderRemoteOut(){
   const cell=function(k,v,s){return '<div class="repcell"><div class="k">'+k+'</div><div class="v">'+v+(s?'<small> '+s+'</small>':'')+'</div></div>';};
   const a=r.a;
   let h='<div class="rep" style="margin-top:10px"><h3>'+esc(name)+' · '+(d.points||0)+'P · 연속 '+(d.streak||0)+'일<small style="display:block;font-weight:600;margin-top:2px">'+new Date(remoteAt).toLocaleString("ko-KR")+' 저장분</small></h3><div class="repgrid">'+
-    cell("공부한 날",a.days,"/ 7일")+cell("완료 세션",a.sess,"/ 21")+
+    cell("공부한 날",a.days,"/ 7일")+cell("완료 단계",a.sess,"/ 21")+
     cell("영어 정답률",a.acc===null?"—":a.acc+"%")+cell("수학 정답률",a.macc===null?"—":a.macc+"%")+
     cell("오답노트",a.notes,"장")+cell("오답 저장소",(d.wrongLog||[]).length,"문제")+
     '</div><div class="repline">'+esc(r.lines.join("\n"))+'</div><div class="repline hi">👉 '+esc(r.tip)+'</div></div>';
@@ -4114,8 +4118,8 @@ function renderParent(){
   $("examDate").value=(S.exam&&S.exam.date)||"";
   const ed=examDays();
   $("examTip").textContent=(S.exam&&S.exam.on&&ed!==null)
-    ?("시험 모드 켜짐 · "+(ed>0?"D-"+ed:ed===0?"오늘이 시험날":"시험이 지났어요")+" · D-21부터 세션 2가 암기 → 유사 문제 → 오답 순으로 자동으로 바뀝니다.")
-    :"날짜를 정하고 켜면 아이 홈에 D-day가 뜨고, 남은 기간에 맞게 세션이 바뀝니다.";
+    ?("시험 모드 켜짐 · "+(ed>0?"D-"+ed:ed===0?"오늘이 시험날":"시험이 지났어요")+" · D-21부터 2단계가 암기 → 유사 문제 → 오답 순으로 자동으로 바뀝니다.")
+    :"날짜를 정하고 켜면 아이 홈에 D-day가 뜨고, 남은 기간에 맞게 단계가 바뀝니다.";
   const il=$("impList");il.innerHTML="";
   const dks=decks();
   dks.forEach(function(d){
@@ -4265,7 +4269,7 @@ function weekReport(){
   const weak=Object.keys(topics).sort(function(x,y){return topics[y]-topics[x];}).slice(0,3);
   const lines=[];
   const diff=a.sess-b.sess;
-  lines.push(a.days?("공부한 날 "+a.days+"일 · 세션 "+a.sess+"개"+(b.sess?(diff>0?" (지난주보다 "+diff+"개 늘었어요)":diff<0?" (지난주보다 "+(-diff)+"개 줄었어요)":" (지난주와 같아요)"):"")):
+  lines.push(a.days?("공부한 날 "+a.days+"일 · 단계 "+a.sess+"개"+(b.sess?(diff>0?" (지난주보다 "+diff+"개 늘었어요)":diff<0?" (지난주보다 "+(-diff)+"개 줄었어요)":" (지난주와 같아요)"):"")):
                     "이번 주에는 아직 시작한 날이 없어요.");
   if(a.acc!==null)lines.push("영어 정답률 "+a.acc+"%"+(b.acc!==null?" (지난주 "+b.acc+"%)":""));
   if(a.macc!==null)lines.push("수학 정답률 "+a.macc+"% · 사다리 "+mathLevel()+"단계 "+M_LEVELS[mathLevel()-1].name);
@@ -4287,7 +4291,7 @@ function renderReport(){
   const r=weekReport(),a=r.a;
   const cell=function(k,v,s){return '<div class="repcell"><div class="k">'+k+'</div><div class="v">'+v+(s?'<small> '+s+'</small>':'')+'</div></div>';};
   $("repBox").innerHTML='<div class="rep"><h3>'+addDays(todayKey(),-6)+' ~ '+todayKey()+'</h3><div class="repgrid">'+
-    cell("공부한 날",a.days,"/ 7일")+cell("완료 세션",a.sess,"/ 21")+
+    cell("공부한 날",a.days,"/ 7일")+cell("완료 단계",a.sess,"/ 21")+
     cell("영어 정답률",a.acc===null?"—":a.acc+"%")+cell("수학 정답률",a.macc===null?"—":a.macc+"%")+
     cell("오답노트",a.notes,"장")+cell("오답 저장소",(S.wrongLog||[]).length,"문제")+
     '</div><div class="repline">'+esc(r.lines.join("\n"))+'</div><div class="repline hi">👉 '+esc(r.tip)+'</div></div>';
@@ -4314,7 +4318,7 @@ function renderNoteSegs(){
   [["light","적게"],["normal","보통"],["more","많이"]].forEach(function(c){
     const b=document.createElement("button");
     b.className="seg"+(((S.settings.load||"normal")===c[0])?" on":"");b.textContent=c[1];
-    b.onclick=function(){S.settings.load=c[0];save();renderNoteSegs();renderHome();toast("다음 세션부터 "+c[1]+"로");};
+    b.onclick=function(){S.settings.load=c[0];save();renderNoteSegs();renderHome();toast("다음 단계부터 "+c[1]+"로");};
     ls.appendChild(b);
   });
 }
@@ -4396,14 +4400,14 @@ function calDetail(){
   const pl=planFor(key),my=myFor(key);
   let h='<div class="cdetail"><div class="dt">'+(dt.getMonth()+1)+'월 '+dt.getDate()+'일 ('+"일월화수목금토"[dt.getDay()]+')</div>';
   const bits=[];
-  bits.push(sess?("세션 "+sess+"개 완료"):(key>todayKey()?"아직 오지 않은 날":"공부 기록 없음"));
+  bits.push(sess?("단계 "+sess+"개 완료"):(key>todayKey()?"아직 오지 않은 날":"공부 기록 없음"));
   if(inExam(key))bits.push("시험기간"+(S.exam.name?(" · "+S.exam.name):""));
   if(key===todayKey())bits.unshift("오늘");
   h+='<div class="ds">'+esc(bits.join(" · "))+'</div>';
   pl.forEach(function(p){
     const on=planIsDone(p.k);
     h+='<div class="citem"><span class="tag plan">계획</span>'+
-      '<span class="tx'+(on?" off":"")+'">'+esc(p.title)+(p.sess?(" · 세션 "+p.sess):"")+'</span>'+
+      '<span class="tx'+(on?" off":"")+'">'+esc(p.title)+(p.sess?(" · "+p.sess+"단계"):"")+'</span>'+
       '<button class="cx'+(on?" on":"")+'" onclick="planToggle(\''+esc(p.k)+'\')">'+(on?"✓":"○")+'</button></div>';
   });
   (S.stage.reviews||[]).filter(function(r){return r.d===key&&!r.done;}).forEach(function(r){
