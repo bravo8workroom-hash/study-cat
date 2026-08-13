@@ -499,6 +499,8 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
         <p id="doneMsg"></p>
       </div>
       <div style="height:18px"></div>
+      <!-- 오늘의 질문 (한 번 탭하면 저장, 안 해도 그냥 홈으로 가면 됨) -->
+      <div class="fbwrap" id="askWrap" style="display:none"></div>
       <!-- 피드백 (선택 — 안 써도 그냥 홈으로 가면 됨) -->
       <div class="fbwrap" id="fbWrap">
         <button class="fbopen" id="fbOpen" onclick="fbOpen()">📝 하고 싶은 말 남기기 <small>· 안 써도 괜찮아</small></button>
@@ -515,6 +517,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
         <div class="fbthx" id="fbThx" style="display:none"></div>
       </div>
       <div style="height:14px"></div>
+      <button class="bigbtn c" id="doneMore" style="width:100%;margin-bottom:10px" onclick="oneMore()"></button>
       <button class="bigbtn o" style="width:100%" onclick="goHome(true)">홈으로 →</button>
     </div>
   </section>
@@ -1845,7 +1848,7 @@ function wqDue(){const t=todayKey();return Object.keys(S.wq||{}).map(Number).fil
 /* 테스트 모드 (?test=1) — 설계실에서 열어 모든 학습 페이지를 눌러 보는 샌드박스. 저장·전송을 하지 않는다 */
 const TEST=/[?&]test=1/.test(location.search);
 let S;
-function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]},wbase:WORDS_BASE,stage:{passed:{},reviews:[],tries:null},wq:{},cmdDone:[]};}
+function defState(){return {points:0,streak:0,lastActive:null,words:{},log:{},settings:{name:"",newPerDay:7,pin:"000088",noteStage:1,load:"normal",sync:{code:"",up:false},view:{code:""}},math:{level:1,diagDone:false,hist:[],hi:[],mix:false},wrongLog:[],fb:[],plans:[],planDone:{},imp:{words:[],quiz:[],log:[]},wbase:WORDS_BASE,stage:{passed:{},reviews:[],tries:null},wq:{},cmdDone:[],qi:0};}
 function migrate(){
   if(!S.settings)S.settings={name:"",newPerDay:7};
   if(!S.math)S.math={level:1,diagDone:false,hist:[],hi:[],mix:false};
@@ -1891,6 +1894,7 @@ function migrate(){
   if(!S.stage.passed)S.stage.passed={};
   if(!Array.isArray(S.stage.reviews))S.stage.reviews=[];
   if(!S.wq||typeof S.wq!=="object")S.wq={};
+  if(typeof S.qi!=="number")S.qi=0;   /* 오늘의 질문 회전 위치 */
 }
 function load(){try{S=JSON.parse(localStorage.getItem("catstudy"))||defState();}catch(e){S=defState();}migrate();applyImports();}
 function save(){if(TEST)return;try{localStorage.setItem("catstudy",JSON.stringify(S));}catch(e){}syncPush();}
@@ -2164,21 +2168,21 @@ function speak(t){try{
 }catch(e){}}
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1600);}
 function level(){return Math.min(10,Math.floor(S.points/500)+1);}
-function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);if(id==="scr-done")fbReset();}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);if(id==="scr-done"){fbReset();renderMore();askReset();}}
 
 /* ================= 홈 ================= */
 function autoNewPerDay(){
-  /* 하루 새 단어 수는 아이 수준에 맞춰 자동 — 밀린 복습·헷갈리는 단어가 많으면 7개, 잘 따라오면 12개, 평소 10개
-     (2026-08-13 상향: 아이가 "분량이 적다"고 함. 밀리면 자동으로 다시 줄어드는 구조는 그대로) */
+  /* 하루 새 단어 수는 아이 수준에 맞춰 자동 — 밀린 복습·헷갈리는 단어가 많으면 8개, 잘 따라오면 16개, 평소 13개
+     (2026-08-13 2차 상향: 아이가 또 "분량이 적다"고 함. 밀리면 자동으로 다시 줄어드는 구조는 그대로) */
   const t=todayKey();let due=0,strug=0,learned=0;
   Object.keys(S.words).forEach(function(id){
     const w=S.words[id];if(!WORDS[id])return;learned++;
     if(w.due<=t)due++;
     if((w.box||0)<=1)strug++;
   });
-  if(due>=15||strug>=10)return 7;
-  if(learned>=30&&due<=5&&strug<=3)return 12;
-  return 10;
+  if(due>=15||strug>=10)return 8;
+  if(learned>=30&&due<=5&&strug<=3)return 16;
+  return 13;
 }
 function newWordsToday(){
   const log=dayLog();
@@ -2447,6 +2451,17 @@ function finishSession(){
   const card=$("doneCard");card.classList.remove("pop");void card.offsetWidth;card.classList.add("pop");
   show("scr-done");
 }
+/* ---- 한 판 더 (아이가 더 하고 싶을 때 — 고정 분량을 올리는 대신) ---- */
+function nextUndone(){const s=dayLog().s;for(let i=0;i<3;i++)if(!s[i])return i+1;return 0;}
+function renderMore(){
+  const b=$("doneMore");if(!b)return;
+  const n=nextUndone();
+  b.textContent=n?"바로 "+n+"단계 하기 →":"한 판 더 하기 (복습) →";
+}
+function oneMore(){
+  const n=nextUndone();
+  startSession(n||3);
+}
 function goHome(refresh){renderHome();show("scr-home");setNav("home");}
 
 /* ================= 피드백 (아이가 선택적으로 남기는 한마디) ================= */
@@ -2509,6 +2524,69 @@ function fbSend(){
   $("fbOpen").style.display="none";
   $("fbThx").textContent="고마워, 잘 받았어 🐱 다음에 고칠 때 꼭 볼게.";
   $("fbThx").style.display="";
+}
+
+/* ================= 오늘의 질문 (완료 화면에서 하나만 — 한 번 탭하면 저장) =================
+   기존 피드백(S.fb)에 그대로 합류시킨다. 형식만 다르다: {at,d,ctx,q:질문id,a:고른 보기} */
+const QPOOL=[
+  {id:"hard",   q:"오늘 한 것 중에 뭐가 제일 어려웠어?", a:["단어 뜻","철자","듣기","수학 계산","문제 이해","딱히 없어"]},
+  {id:"amount", q:"지금 분량 어때?",                  a:["적어","딱 좋아","많아"]},
+  {id:"alone",  q:"혼자서도 할 수 있겠어?",            a:["응","조금 어려워","아직 못 하겠어"]},
+  {id:"want",   q:"더 하고 싶은 게 있어?",             a:["영어 단어","수학","과학·사회","게임 같은 거"]},
+  {id:"expl",   q:"설명이 이해됐어?",                  a:["잘 됐어","반쯤","무슨 말인지 모르겠어"]},
+  {id:"when",   q:"언제 하는 게 제일 좋아?",           a:["학교 끝나고","저녁 먹고","자기 전","아무때나"]},
+  {id:"bug",    q:"앱에서 불편한 거 있었어?",          a:["글씨가 작아","소리가 이상해","느려","뭘 눌러야 할지 모르겠어","없어"]},
+  {id:"fun",    q:"뭐가 있으면 더 재밌을까?",          a:["점수 겨루기","고양이 꾸미기","그림·영상","친구랑 같이","잘 모르겠어"]}
+];
+function askPick(){
+  if(!Array.isArray(S.fb))S.fb=[];
+  const t=todayKey(),done={};
+  S.fb.forEach(function(f){if(f&&f.d===t&&f.q)done[f.q]=1;});
+  const st=(typeof S.qi==="number"?S.qi:0)%QPOOL.length;
+  for(let k=0;k<QPOOL.length;k++){
+    const i=(st+k)%QPOOL.length;
+    if(!done[QPOOL[i].id]){S.qi=i;return QPOOL[i];}
+  }
+  return null;   /* 오늘 8개를 다 답했으면 더 묻지 않는다 */
+}
+function askReset(){
+  const w=$("askWrap");if(!w)return;
+  w.innerHTML="";
+  const q=askPick();
+  if(!q){w.style.display="none";return;}
+  w.style.display="";
+  const card=document.createElement("div");card.className="fbcard";
+  const h=document.createElement("div");h.className="q";h.textContent=q.q;
+  const s=document.createElement("small");s.textContent="하나만 누르면 끝 — 캣샘이 보고 다음 공부를 바꿔.";
+  h.appendChild(s);card.appendChild(h);
+  const tags=document.createElement("div");tags.className="fbtags";
+  q.a.forEach(function(opt){
+    const b=document.createElement("button");b.className="fbtag";b.textContent=opt;
+    b.onclick=function(){askAns(q.id,opt);};
+    tags.appendChild(b);
+  });
+  card.appendChild(tags);
+  const row=document.createElement("div");row.className="fbrow";
+  const sk=document.createElement("button");sk.textContent="다음에";sk.onclick=askSkip;
+  row.appendChild(sk);card.appendChild(row);
+  w.appendChild(card);
+}
+function askAns(qid,a){
+  if(!Array.isArray(S.fb))S.fb=[];
+  S.fb.push({at:new Date().toISOString(),d:todayKey(),ctx:fbCtx(),q:qid,a:String(a).slice(0,60)});
+  if(S.fb.length>300)S.fb=S.fb.slice(-300);
+  S.qi=((typeof S.qi==="number"?S.qi:0)+1)%QPOOL.length;
+  save();
+  const w=$("askWrap");if(!w)return;
+  w.innerHTML="";
+  const t=document.createElement("div");t.className="fbthx";
+  t.textContent="고마워, 잘 들었어 🐱";
+  w.appendChild(t);
+}
+function askSkip(){
+  S.qi=((typeof S.qi==="number"?S.qi:0)+1)%QPOOL.length;   /* 같은 질문에 계속 막히지 않게 다음 질문으로 */
+  save();
+  const w=$("askWrap");if(w){w.innerHTML="";w.style.display="none";}
 }
 
 /* ================= 단어장 ================= */

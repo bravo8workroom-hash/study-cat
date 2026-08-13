@@ -1055,6 +1055,13 @@ let CMDQ=[], CHILD=null, CHILD_AT="", adArm={}, cmdTimer=null;
 let AD_WRONG=[], AD_DECKS=[], AD_SETS=[];
 const AD_SUBJ={social:"사회",science:"과학",history:"역사",korean:"국어",math:"수학",english:"영어",etc:"암기"};
 const AD_MOOD={easy:"쉬웠어",good:"딱 좋아",hard:"어려웠어"};
+/* 완료 화면 '오늘의 질문' — 앱 QPOOL 의 id와 같아야 한다 */
+const AD_Q={hard:"제일 어려웠던 것",amount:"분량",alone:"혼자 할 수 있나",want:"더 하고 싶은 것",
+  expl:"설명 이해",when:"하기 좋은 때",bug:"앱 불편한 점",fun:"있으면 재밌을 것"};
+function fbLine(e){
+  if(e&&e.q)return (AD_Q[e.q]||e.q)+": "+(e.a||"");
+  return [e.mood?(AD_MOOD[e.mood]||e.mood):""].concat((e&&e.tags)||[]).filter(Boolean).join(" · ");
+}
 const AD_NOTE=["","전부 써 줄게","반은 네가","거의 혼자"];
 const AD_PROMPTS=[
  ["오답 변형 문제 만들기","첨부한 파일은 아이의 오답 기록이야. 많이 틀린 유형 순서로, 유형당 변형 문제 3개씩 만들어줘. 해설은 중1이 혼자 읽고 이해할 수 있는 말로 짧게. 앱 불러오기 형식(type:\"quiz\") JSON 파일로 만들어줘."],
@@ -1201,7 +1208,7 @@ function adCopyFb(){
   const fb=(CHILD&&CHILD.fb)||[];
   if(!fb.length){toast("피드백이 없어요");return;}
   const txt="[공부하는 고양이] 아이 피드백 "+fb.length+"개\n\n"+fb.slice().reverse().map(function(e){
-    const pick=[e.mood?(AD_MOOD[e.mood]||e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
+    const pick=fbLine(e);
     return "- "+(e.d||"")+" · "+((e.ctx&&e.ctx.title)||"")+"\n  고른 것: "+(pick||"없음")+(e.txt?"\n  쓴 말: "+e.txt:"");
   }).join("\n");
   adCopy(txt,"피드백을 복사했어요");
@@ -1333,7 +1340,7 @@ function adRender(){
   if(!fb.length)h+='<div class="amini">아직 남긴 말이 없어요. 학습을 마친 화면에서 남길 수 있어요.</div>';
   else{
     fb.slice(-8).reverse().forEach(function(e){
-      const pick=[e.mood?(AD_MOOD[e.mood]||e.mood):""].concat(e.tags||[]).filter(Boolean).join(" · ");
+      const pick=fbLine(e);
       h+='<div class="arow"><span class="q">'+(pick?'<b style="color:var(--orange)">'+esc(pick)+'</b> ':"")+esc(e.txt||"")+'</span><span class="x">'+esc(e.d||"")+'</span></div>';
     });
     h+='<div class="aseg" style="margin-top:8px"><button class="btn sm" onclick="adCopyFb()">전체 복사</button></div>';
