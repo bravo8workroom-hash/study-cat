@@ -280,6 +280,20 @@ header{display:flex;justify-content:space-between;align-items:center;padding:22p
 .shotcard .st{display:inline-block;font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;margin-top:8px}
 .shotcard .st.up{background:var(--cream);color:#6B5320}
 .shotcard .st.wait{background:#F1EFF7;color:var(--slate)}
+/* 뭘 찍을지 안내 — 과목마다 [외울 내용]·[문제집] 두 갈래로 */
+.guide{background:var(--paper);color:var(--ink);border-radius:22px;padding:16px 18px;margin-top:14px}
+.guide>.gh{font-size:14.5px;font-weight:800}
+.guide>.gd{font-size:12.5px;font-weight:600;color:var(--slate);margin-top:6px;line-height:1.6}
+.gsub{margin-top:16px;padding-top:14px;border-top:1.4px solid #EDEBF4}
+.gsub:first-of-type{border-top:none;padding-top:0}
+.gname{display:inline-block;background:var(--cream);color:#6B5320;font-size:12.5px;font-weight:800;
+  padding:5px 11px;border-radius:999px}
+.gline{display:flex;gap:9px;align-items:flex-start;margin-top:9px;font-size:13px;font-weight:600;line-height:1.6}
+.gkind{flex:none;min-width:66px;background:#F1EFF7;color:var(--slate);font-size:11.5px;font-weight:800;
+  padding:4px 8px;border-radius:9px;text-align:center;margin-top:1px}
+.gtip{margin-top:16px;padding:12px 14px;border-radius:16px;background:#FFF6E8;
+  border-left:4px solid var(--orange);font-size:12.5px;font-weight:600;line-height:1.7}
+.gtip b{font-weight:800}
 
 /* ---------- 하단 내비 ---------- */
 nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
@@ -546,7 +560,7 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
       <div class="k">학습 설계실 (마인드맵·월간 계획)</div>
       <a class="setbtn" href="설계실.html" target="_blank" rel="noopener"
          style="background:var(--cream);display:block;text-align:center;text-decoration:none">학습 설계실 열기</a>
-      <p class="tip">PC 화면용이에요. 여기서 짠 계획을 [앱으로 보내기] 하면 달력 탭 [계획 새로 받기]로 받아요.</p>
+      <p class="tip">PC 화면용이에요. 설계실에서 짠 계획은 자동으로 서버에 올라와요 — 달력 탭 [계획 새로 받기]로 받아요.</p>
     </div>
     <div class="setrow">
       <div class="k">전체 초기화</div>
@@ -835,6 +849,42 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
     <div class="sect"><h2>모아 둔 자료</h2><div class="sub" id="shotState"></div></div>
     <div id="shotList"></div>
     <p class="tip" id="shotTip"></p>
+
+    <div class="sect" style="margin-top:26px"><h2>뭘 찍으면 될까?</h2></div>
+    <div class="guide">
+      <div class="gh">과목이랑 "어떻게 쓸까"만 맞게 고르면 돼</div>
+      <div class="gd">나머지는 캣샘이 알아서 문제랑 암기 카드로 만들어 줄게.</div>
+
+      <div class="gsub">
+        <span class="gname">수학</span>
+        <div class="gline"><span class="gkind">문제집</span><span>채점한 문제집·시험지. <b>틀린 표시는 지우지 말고</b> 그대로 찍어 줘 — 어디서 막히는지 그게 제일 중요해.</span></div>
+        <div class="gline"><span class="gkind">외울 내용</span><span>단원 첫 장, 공식이나 푸는 순서가 정리된 쪽.</span></div>
+      </div>
+
+      <div class="gsub">
+        <span class="gname">과학</span>
+        <div class="gline"><span class="gkind">외울 내용</span><span>교과서 펼친 쪽(단원 제목 나오게), 용어 정리 박스, 실험 표·그래프, 학교 프린트.</span></div>
+        <div class="gline"><span class="gkind">문제집</span><span>문제집·단원평가·수행평가지. <b>어떤 식으로 나오는지</b> 알아야 그 유형으로 연습 문제를 만들어 줄 수 있어.</span></div>
+      </div>
+
+      <div class="gsub">
+        <span class="gname">사회</span>
+        <div class="gline"><span class="gkind">외울 내용</span><span>교과서 본문, 지도·연표·도표(제목이랑 범례까지), 용어 정리 박스.</span></div>
+        <div class="gline"><span class="gkind">문제집</span><span>문제집·단원평가·수행평가지. 과학이랑 똑같아.</span></div>
+      </div>
+
+      <div class="gsub">
+        <span class="gname">시험 볼 때</span>
+        <div class="gline"><span class="gkind">시험 범위</span><span>시험 범위 안내문을 받으면 바로 한 장. 그날부터 시험까지 뭘 할지 자동으로 짜 줄게.</span></div>
+      </div>
+
+      <div class="gtip">
+        <b>잘 찍는 법</b><br>
+        · 한 장에 한 쪽씩. 글씨가 작으면 위·아래 반씩 두 장으로.<br>
+        · 위에서 반듯하게, 그림자 안 지게. 흐리면 못 읽어.<br>
+        · 제목칸에 단원을 적어 주면 좋아 — 예: 과학 3-2 소화기관
+      </div>
+    </div>
   </section>
 
 </div>
@@ -1903,18 +1953,27 @@ function fetchPron(word){
       return rec;
     }).catch(function(){return null;});
 }
-let AUDIO=null;
+let AUDIO=null,PRON_SEQ=0;
+/* 소리를 새로 낼 때는 앞의 소리를 반드시 끊는다 — 안 끊으면 늦게 도착한 앞 단어 소리가
+   지금 카드에서 들린다 (아이 피드백 2026-08-08 "북인데 다른 단어가 들려") */
+function stopSound(){
+  PRON_SEQ++;
+  if(AUDIO){try{AUDIO.pause();}catch(e){}AUDIO=null;}
+  try{speechSynthesis.cancel();}catch(e){}
+}
 function playPron(word,onFail){
   const w=String(word||"").toLowerCase().trim();
+  stopSound();
+  const my=PRON_SEQ;
   const rec=PRON[w];
   if(rec&&rec.audio){
     try{
-      if(AUDIO){AUDIO.pause();}
-      AUDIO=new Audio(rec.audio);AUDIO.play().catch(function(){speak(word);});
+      AUDIO=new Audio(rec.audio);AUDIO.play().catch(function(){if(my===PRON_SEQ)speak(word);});
       return true;
     }catch(e){}
   }
   fetchPron(w).then(function(r){
+    if(my!==PRON_SEQ)return;   /* 그새 카드가 넘어갔으면 늦게 온 소리는 버린다 */
     if(r&&r.audio){try{AUDIO=new Audio(r.audio);AUDIO.play().catch(function(){speak(word);});}catch(e){speak(word);}}
     else speak(word);
     if(onFail)onFail(r);
@@ -2094,16 +2153,17 @@ function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.re
 
 /* ================= 홈 ================= */
 function autoNewPerDay(){
-  /* 하루 새 단어 수는 아이 수준에 맞춰 자동 — 밀린 복습·헷갈리는 단어가 많으면 5개, 잘 따라오면 10개, 평소 7개 */
+  /* 하루 새 단어 수는 아이 수준에 맞춰 자동 — 밀린 복습·헷갈리는 단어가 많으면 7개, 잘 따라오면 12개, 평소 10개
+     (2026-08-13 상향: 아이가 "분량이 적다"고 함. 밀리면 자동으로 다시 줄어드는 구조는 그대로) */
   const t=todayKey();let due=0,strug=0,learned=0;
   Object.keys(S.words).forEach(function(id){
     const w=S.words[id];if(!WORDS[id])return;learned++;
     if(w.due<=t)due++;
     if((w.box||0)<=1)strug++;
   });
-  if(due>=15||strug>=10)return 5;
-  if(learned>=30&&due<=5&&strug<=3)return 10;
-  return 7;
+  if(due>=15||strug>=10)return 7;
+  if(learned>=30&&due<=5&&strug<=3)return 12;
+  return 10;
 }
 function newWordsToday(){
   const log=dayLog();
@@ -2225,6 +2285,7 @@ function startSession(n){
 /* ---- 카드 학습 ---- */
 function showCard(){
   dk=null;
+  stopSound();   /* 앞 카드의 소리가 이 카드에서 들리지 않게 */
   show("scr-learn");
   const id=cur.cards[cur.idx];const w=WORDS[id];
   $("flipCard").classList.remove("flipped");
@@ -2998,9 +3059,21 @@ function sessionKind(k){
     if(pendingDecks().length)return "deck";
     if(pendingSets().length)return "set";
   }
+  /* 요일 배치 — 월 영어 · 화 수학 · 수 사진 세트 · 목 수학 · 금 영어 · 토 주간복습 · 일 오답
+     사진(교과서·문제집)으로 만든 과학·사회 세트가 시험 기간에만 나오던 걸 평소 학습에 넣었다 (2026-08-13).
+     그날 할 세트가 없으면 조용히 영어로 돌아간다. */
   const d=new Date((k||todayKey())+"T00:00:00").getDay();
   if(d===6)return "week";
   if(d===2||d===4)return "math";
+  if(d===3){
+    if(pendingDecks().length)return "deck";
+    if(pendingSets().length)return "set";
+  }
+  if(d===0){
+    if(wrongPool().length>=4)return "again";
+    if(pendingDecks().length)return "deck";
+    if(pendingSets().length)return "set";
+  }
   return "eng";
 }
 function mathDesc(){
@@ -3777,6 +3850,7 @@ function startDeck(id,asSession){
   showDeckCard();
 }
 function showDeckCard(){
+  stopSound();
   show("scr-learn");
   const c=dk.deck.cards[dk.ids[dk.idx]];
   $("flipCard").classList.remove("flipped");
