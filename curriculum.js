@@ -1,31 +1,31 @@
 /* ============================================================
-   커리큘럼 — 마인드맵의 뿌리
+   Curriculum — root of mindmap
    ------------------------------------------------------------
-   설계실(설계실.html)이 이 파일을 읽어 마인드맵을 그린다.
-   여기를 고치고 설계실을 새로고침하면 바로 반영된다.
+   Studio (studio.html) reads this file to draw the mindmap.
+   Edit here and refresh studio to see changes immediately.
 
-   노드 하나 = 마인드맵의 잎 하나 = 하루치 학습 한 덩어리.
+   One node = one leaf in the mindmap = one day's learning chunk.
 
    {
-     id    : 짧은 영문 id (파일 이름이 된다. 겹치면 안 됨)
-     title : 마인드맵에 보이는 이름
-     min   : 예상 시간(분). 한 세션 20분 기준으로 잡는다
-     desc  : 한 줄 설명
-     how   : 학습방법 (짧은 줄 3개 안팎). 여기가 엄마가 제일 자주 고치는 곳
-     check : 통과 기준 — 이만큼 하면 넘어간다
-     app   : 아이 앱에서 이걸 어떻게 내보낼지 (2단계 연동용)
+     id    : short English id (becomes filename, must not conflict)
+     title : name shown in mindmap
+     min   : estimated time (minutes). based on 20-min session
+     desc  : one-line description
+     how   : learning method (about 3 short lines). parent edits this most
+     check : pass criteria — if this much is done, move on
+     app   : how child's app should report this (for 2-stage integration)
    }
 
-   자료 파일: curriculum/<과목id>/<노드id>.md
-   → 설계실의 [학습방법 파일] 버튼이 이 경로를 VS Code로 연다.
-     새 노드를 추가했으면 `node 자료파일_만들기.js`를 한 번 돌려라.
+   Material files: curriculum/<subject_id>/<node_id>.md
+   → Studio's [Learning Method File] button opens this path in VS Code.
+     When you add a new node, run `node curriculum-generator.js` once.
    ============================================================ */
 
 const CURRICULUM = {
   version: 1,
   subjects: [
 
-    /* ─────────────────────── 수학 ─────────────────────── */
+    /* ─────────────────────── Math ─────────────────────── */
     {
       id: "math", name: "수학", tone: "cream",
       defaultDays: [2, 4],          // 화·목 (앱 기본 배치와 같음)
@@ -202,7 +202,7 @@ const CURRICULUM = {
       ]
     },
 
-    /* ─────────────────────── 영어 ─────────────────────── */
+    /* ─────────────────────── English ─────────────────────── */
     {
       id: "english", name: "영어", tone: "orange",
       defaultDays: [1, 3, 5],       // 월·수·금
