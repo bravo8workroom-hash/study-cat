@@ -1,64 +1,64 @@
-> **이 파일은 모든 AI(클로드·코덱스·그 외)가 읽는 공용 지침이다.** 클로드는 `CLAUDE.md`가 이 파일을 불러오고(`@AGENTS.md`), 코덱스는 이 파일을 직접 읽는다. **규칙은 여기에만 쓴다** — `CLAUDE.md`에 쓰면 다른 AI가 못 본다. 전역 규칙은 `~\.claude\CLAUDE.md`(§0-0에 다른 AI용 번역표) · 워크스페이스 지도는 `~\vault-workspace\WORKSPACE_MASTER.md` · 스킬 목록은 `~\vault-workspace\스킬목록.md`.
+> **This file is the shared instruction set read by every AI (Claude, Codex, others).** For Claude, `CLAUDE.md` pulls this file in (`@AGENTS.md`); Codex reads this file directly. **Write rules only here** — rules written in `CLAUDE.md` are invisible to other AIs. Global rules are in `~\.claude\CLAUDE.md` (§0-0 has the translation table for other AIs) · the workspace map is `~\vault-workspace\WORKSPACE_MASTER.md` · the skill list is `~\vault-workspace\스킬목록.md`.
 
-# 아이 학습 프로그램 작업 지침
+# Child learning program — working instructions
 
-## ⛔ 절대 원칙 — 개인정보·아이 데이터는 공개 저장소 금지 (2026-08-09 사용자 확정)
-이 저장소는 GitHub Pages 때문에 **공개**다. 개인정보, 아이의 학습 데이터, 학생기록은 어떤 형태로도 커밋하지 마라.
-- **아이 데이터의 원본은 전부 비공개 Supabase다** (계획·학생 기록·수행 기록·사진). 로컬에는 캣샘의 작업용 사본만 잠깐 두고, git에는 절대 올리지 않는다.
-- 금지 대상: 학생기록.json, 계획.json, 캣샘도구.js, 자료수집/, export-*.json, 아이 이름·사진·기록이 담긴 모든 파일.
-- .gitignore가 막고 있어도 `git add -f` 절대 금지. **커밋 직전 `git status`로 아이 데이터 파일이 스테이징에 없는지 확인**하는 것이 커밋 절차의 일부다.
-- 아이 데이터가 들어갈 새 파일을 만들 때는 **파일을 만들기 전에** .gitignore에 먼저 추가한다.
-- 실수로 커밋·푸시했으면 즉시 이력 재작성(force push)으로 공개 이력에서 제거하고 사용자에게 보고한다.
+## ⛔ Absolute principle — no personal information or child data in a public repository (confirmed by the user 2026-08-09)
+This repository is **public** because of GitHub Pages. Never commit personal information, the child's learning data, or student records in any form.
+- **The original of all child data is the private Supabase** (plans · student records · performance records · photos). Locally, only the 「캣샘」's working copy is kept briefly, and it is never put into git.
+- Forbidden targets: 학생기록.json, 계획.json, 캣샘도구.js, 자료수집/, export-*.json, and every file containing the child's name, photos or records.
+- Even if .gitignore blocks them, `git add -f` is absolutely forbidden. **Right before committing, check with `git status` that no child-data file is staged** — this is part of the commit procedure.
+- When creating a new file that will hold child data, add it to .gitignore **before creating the file**.
+- If something was committed or pushed by mistake, immediately remove it from the public history by rewriting history (force push) and report to the user.
 
-## 대상
-- 중학교 1학년 남학생. 영어는 기초(초등 수준)부터, 수학은 기본기 보강 중.
-- 공부에 흥미가 낮으므로 문제·해설·코칭 문구는 짧고, 쉽고, 다그치지 않는 말투로.
+## Target
+- A 중1 (Grade 1 of middle school) boy. English from the basics (elementary level), math is basic-skills reinforcement in progress.
+- Since his interest in studying is low, questions, explanations and coaching phrases are short, easy, and in a tone that does not nag.
 
-## 프로젝트 파일
-- `설계문서.md` — 전체 설계. 모든 기능 판단의 기준. 새 기능을 만들기 전에 반드시 해당 섹션을 읽을 것.
-- `다음단계_개발지시서.md` — 현재 구현 상태와 남은 로드맵.
-- `앱/공부하는고양이.html` — 실제 사용 중인 앱. 수정 시 아래 "앱 수정 규칙"을 지킬 것.
+## Project files
+- `설계문서.md` — the overall design. The standard for every feature judgment. Before building a new feature, always read the relevant section.
+- `다음단계_개발지시서.md` — current implementation state and the remaining roadmap.
+- `앱/공부하는고양이.html` — the app actually in use. When editing, follow the 「App editing rules」 below.
 
-## 앱 수정 규칙
-1. 단일 HTML 파일 유지. 서버·설치·외부 의존성 금지 (폰트 CDN 제외).
-2. 디자인: 다크네이비 #19162B 배경, 카드 #FDFEFF, 포인트 #FEB686(오렌지)·#FFE9C3(크림), 보조 #4D4C6B·#6A6986. 블롭(둥근 유기적 곡선) 스타일.
-3. **고양이는 무조건 검정색.** 색 반전·틴트 금지. 어두운 배경 위에서는 흰/크림 동그라미 배경 안에 넣을 것.
-4. 학습 구조: 하루 20분×3세션, 세션 3은 항상 복습. 간격 반복(1→3→7→14→30일)은 모든 학습 항목에 적용.
-5. localStorage 키는 `catstudy` 하나. **구조를 바꿀 때는 기존 사용자 기록이 깨지지 않게 마이그레이션 코드를 넣을 것** (아이의 포인트·스트릭이 사라지면 안 됨).
-6. 새 콘텐츠(단어·문제)는 설계문서 11번의 JSON 형식을 따를 것.
+## App editing rules
+1. Keep a single HTML file. No server, installation or external dependencies (except the font CDN).
+2. Design: dark-navy #19162B background, card #FDFEFF, accent #FEB686 (orange) · #FFE9C3 (cream), secondary #4D4C6B · #6A6986. Blob (round organic curves) style.
+3. **The cat is always black, no exception.** No color inversion or tint. On a dark background, put it inside a white/cream circle background.
+4. Learning structure: 3 sessions of 20 minutes a day, session 3 is always review. Spaced repetition (1→3→7→14→30 days) applies to every learning item.
+5. There is only one localStorage key, `catstudy`. **When changing the structure, put in migration code so existing users' records do not break** (the child's points and streak must not disappear).
+6. New content (words · questions) must follow the JSON format of section 11 of the design document.
 
-## 캣샘 (사용자가 "캣샘"을 부르면 — 2026-08-08 확정 워크플로)
-1. `자료수집/` 폴더의 최신 파일(사진·목록.json)을 직접 읽는다. 폴더가 비었거나 없으면 먼저 `node 자료가져오기.js`로 내려받는다 (study-cat 전용 Supabase 프로젝트라 가족 코드 입력 불필요 — 고정 코드 `CAT-STUDY1` 내장, 2026-08-09 확정).
-2. **중복 작업 금지**: `자료수집/처리기록.json`에 적힌 id는 이미 콘텐츠를 만든 자료다 — 건너뛰고 새 자료만 처리한다. (파일이 없으면 전부 새 자료.)
-3. 읽은 자료로 문제·암기 세트·오답노트를 **설계문서 11번 JSON 형식**으로 생성한다 (아래 "콘텐츠 생성 규칙" 준수).
-4. 결과 파일은 날짜를 붙여 저장하고, 설계실 [관리] → [파일 넣기]로 앱에 보내라고 안내한다.
-5. 생성을 마치면 이번에 처리한 자료의 id·날짜·산출 파일명을 `자료수집/처리기록.json`에 추가한다.
-- 주의: `자료수집/`은 아이 사진이므로 **절대 커밋 금지** (.gitignore가 막고 있음, `git add -f` 금지). 숙제·목차별 오답 연동 같은 앱 내 UI 확장은 철회된 방향이니 다시 제안하지 마라 — 캣샘(수집→Claude가 직접 읽고 생성→파일 불러오기)이 확정안이다.
-- 단, **관리 기능의 설계실 이관은 별도 확정안이다 (2026-08-08 사용자 요청)**: 설계실.html [관리] 패널에서 앱의 설정·엄마 모드·개발자 메뉴를 원격 조작한다 (지시는 catstudy_plan doc 의 cmd.ops, 앱 applyCmd 가 1회 적용 후 S.cmdDone 회신). 파일 넣기는 설계실 [파일 넣기]가 정경로다 (2026-08-09 앱 설정에서 엄마 모드·개발자 메뉴 진입점 제거 — 개발자 메뉴는 테스트 모드 `index.html?test=1`로 이동, 하루 새 단어 수는 autoNewPerDay 자동).
+## 캣샘 (when the user calls 「캣샘」 — workflow confirmed 2026-08-08)
+1. Directly read the latest files (photos · 목록.json) in the `자료수집/` folder. If the folder is empty or missing, first download with `node 자료가져오기.js` (it is a Supabase project dedicated to study-cat, so no family-code entry is needed — the fixed code `CAT-STUDY1` is built in, confirmed 2026-08-09).
+2. **No duplicate work**: ids written in `자료수집/처리기록.json` are materials for which content was already made — skip them and process only new materials. (If the file does not exist, all are new materials.)
+3. From the materials read, generate questions · memorization sets · wrong-answer notes in the **JSON format of section 11 of the design document** (following the 「Content generation rules」 below).
+4. Save the result file with the date attached, and guide the user to send it to the app via 설계실 [관리] → [파일 넣기].
+5. When generation is done, add the id · date · output file name of the materials processed this time to `자료수집/처리기록.json`.
+- Caution: `자료수집/` holds the child's photos, so **never commit** (.gitignore blocks it, `git add -f` is forbidden). In-app UI extensions such as linking homework or per-table-of-contents wrong answers are a withdrawn direction, so do not propose them again — 「캣샘」 (collect → Claude reads directly and generates → load the file) is the confirmed plan.
+- However, **moving the management functions to 설계실 is a separate confirmed plan (user's request 2026-08-08)**: from the 설계실.html [관리] panel, remotely operate the app's settings · mom mode · developer menu (the instruction is cmd.ops of the catstudy_plan doc; the app's applyCmd applies it 1회 (once) and replies with S.cmdDone). Putting in files is done properly through 설계실 [파일 넣기] (2026-08-09: the entry points to mom mode and developer menu were removed from the app settings — the developer menu moved to test mode `index.html?test=1`, and the number of new words per day is automatic via autoNewPerDay).
 
-## 캣샘 = 학습 총괄 (2026-08-09 확정 — 설계실 버튼 대신 캣샘이 직접 관리)
-설계실.html은 열람용 대시보드다. 계획 수립·조정, 아이 수준 판단, 평가 기록은 전부 사용자와 캣샘의 대화로 하고, 캣샘이 아래 통로로 직접 반영한다 (설계실의 저장/불러오기/보내기/받기 버튼은 이때 제거됨 — 자동 동기화).
+## 캣샘 = overall learning manager (confirmed 2026-08-09 — 「캣샘」 manages directly instead of 설계실 buttons)
+설계실.html is a read-only dashboard. Establishing and adjusting plans, judging the child's level, and recording evaluations are all done in conversation between the user and 「캣샘」, and 「캣샘」 reflects them directly through the channels below (the save/load/send/receive buttons of 설계실 were removed at this point — automatic sync).
 
-1. **학습 계획 — 서버(catstudy_plan)가 원본.**
-   `node 캣샘도구.js 계획받기` → `계획.json`의 plan/extra만 수정 → `node 캣샘도구.js 계획올리기`.
-   cmd.ops(관리 지시)와 names(노드 이름표)는 도구가 알아서 챙기니 건드리지 마라.
-   설계실은 열 때 자동 수신·고치면 자동 송신하므로 별도 조작 불필요. 계획.json은 커밋 금지(.gitignore).
-2. **아이 수행 기록**: `node 캣샘도구.js 기록받기` → `자료수집/아이기록.json` (정답률·오답·피드백·포인트). 절대 커밋 금지.
-3. **학생 상태 — 서버(비공개 Supabase, 코드 CAT-STUDY2)가 원본.** 설계실 [학생 기록] 패널이 서버에서 직접 읽는다.
-   `node 캣샘도구.js 학생받기` → `학생기록.json` 수정 → `node 캣샘도구.js 학생올리기`.
-   내용: 수준(profile.level)·학습방향(direction)·학습방법 원칙(methods)·평가 기록(evals)·캣샘 일지(journal).
-   - evals·journal은 최신이 맨 위로 **쌓는다** (지우지 않는다).
-   - level·direction은 덮어쓰되, 바꾼 이유를 journal에 한 줄 남기고 updated를 갱신한다.
-   - 만일을 대비해 아이 이름 등 개인 식별 정보는 쓰지 않는다 — 수준·방향·평가 내용만.
-4. **평가 루프 (사용자가 "평가", "요즘 어때" 등으로 요청 시)**: 기록받기 → 정답률·완료·피드백을 담백하게 보고 → 학생받기 후 평가 추가·학생올리기 → 필요하면 계획·커리큘럼 조정 제안 → 승인되면 반영.
-5. **커리큘럼 수정**: 짧은 학습방법·통과 기준은 curriculum.js, 긴 자료는 curriculum/<과목>/<노드id>.md. 설계실의 임시 노드를 정식 등록할 때는 서버 doc의 extra에서 데이터를 읽어 curriculum.js에 넣고 `node 자료파일_만들기.js` 실행.
-6. **아이 데이터는 git 금지 (2026-08-09 사용자 지시, 위 절대 원칙 참조)**: 원본은 비공개 Supabase — 로컬 사본(학생기록.json·계획.json·자료수집/)과 캣샘도구.js는 .gitignore 대상, `git add -f` 절대 금지. curriculum.js 등 코드만 검증 후 커밋·푸시한다.
+1. **Learning plan — the server (catstudy_plan) is the original.**
+   `node 캣샘도구.js 계획받기` → edit only plan/extra of `계획.json` → `node 캣샘도구.js 계획올리기`.
+   The tool takes care of cmd.ops (management instructions) and names (node name tags) by itself, so do not touch them.
+   설계실 auto-receives when opened and auto-sends when edited, so no separate operation is needed. 계획.json must not be committed (.gitignore).
+2. **Child's performance record**: `node 캣샘도구.js 기록받기` → `자료수집/아이기록.json` (accuracy rate · wrong answers · feedback · points). Never commit.
+3. **Student state — the server (private Supabase, code CAT-STUDY2) is the original.** The 설계실 [학생 기록] panel reads directly from the server.
+   `node 캣샘도구.js 학생받기` → edit `학생기록.json` → `node 캣샘도구.js 학생올리기`.
+   Contents: level (profile.level) · learning direction (direction) · learning-method principles (methods) · evaluation records (evals) · 캣샘 journal (journal).
+   - evals and journal are **stacked** with the newest on top (never deleted).
+   - level and direction are overwritten, but leave one line in the journal about why it was changed and update `updated`.
+   - Just in case, do not write personally identifying information such as the child's name — only level · direction · evaluation content.
+4. **Evaluation loop (when the user requests with 「평가」, 「요즘 어때」, etc.)**: 기록받기 → report accuracy · completion · feedback plainly → after 학생받기 add an evaluation and 학생올리기 → if needed propose adjusting the plan · curriculum → reflect when approved.
+5. **Curriculum edits**: short learning methods and pass criteria go in curriculum.js, long materials in curriculum/<subject>/<node id>.md. When formally registering a temporary node from 설계실, read the data from the extra of the server doc, put it into curriculum.js, and run `node 자료파일_만들기.js`.
+6. **Child data is forbidden in git (user's instruction 2026-08-09, see the absolute principle above)**: the original is the private Supabase — the local copies (학생기록.json · 계획.json · 자료수집/) and 캣샘도구.js are .gitignore targets, `git add -f` is absolutely forbidden. Only code such as curriculum.js is committed and pushed after verification.
 
-## 콘텐츠 생성 규칙 (문제·오답노트 만들 때)
-1. 해설은 중1이 혼자 읽고 이해할 수 있는 말로. 한 문장씩 짧게.
-2. 문제 변형은 원본과 같은 유형, 같은 난이도(또는 살짝 쉽게). 숫자·소재만 변경.
-3. 오답노트는 ①문제 ②아이가 쓴 답 ③틀린 이유 ④핵심 개념 ⑤비슷한 문제 구조.
-   마지막에 "노트는 이렇게 만드는 거야" 코칭 한 줄 필수.
-   현재 넘기기 단계: [1~3주차 — 전부 작성] ← 진행에 따라 이 줄을 수정
-4. 칭찬·격려는 과장 없이 담백하게. "천재네!" 금지, "어제보다 2개 늘었네" 방식.
-5. 자료수집/ 폴더의 파일을 읽고, 결과는 날짜를 붙여 저장.
+## Content generation rules (when making questions and wrong-answer notes)
+1. Write explanations in words a 중1 (Grade 1 of middle school) student can read and understand alone. One short sentence at a time.
+2. Question variants are of the same type and the same difficulty as the original (or slightly easier). Change only numbers and subject matter.
+3. A wrong-answer note is ① the question ② the answer the child wrote ③ why it was wrong ④ the core concept ⑤ the structure of a similar question.
+   At the end, one line of coaching 「노트는 이렇게 만드는 거야」 is mandatory.
+   Current handover stage: [Weeks 1~3 — write everything] ← edit this line as progress goes
+4. Praise and encouragement are plain, without exaggeration. No 「천재네!」; use the style 「어제보다 2개 늘었네」.
+5. Read the files in the 자료수집/ folder, and save the result with the date attached.
