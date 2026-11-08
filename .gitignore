@@ -17,3 +17,6 @@ export-*.json
 계획.json
 학생기록.json
 캣샘도구.js
+
+# test screenshots (시험/버튼형시험.py output)
+시험/cat_shots/
