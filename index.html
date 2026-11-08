@@ -354,8 +354,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
 .tile:active{transform:scale(.94)}
 .tile.used{opacity:.22;pointer-events:none}
 .tile.del{background:transparent;border:1.6px solid var(--slate);color:var(--paper);font-size:18px}
-.spinput{width:100%;border:none;border-radius:20px;padding:16px;font-size:26px;font-weight:800;text-align:center;
-  font-family:inherit;letter-spacing:3px;color:var(--ink)}
 /* 문장 만들기 — 낱말 단위라 글자 타일보다 넓게 */
 .wslot{min-width:54px;height:48px;padding:0 12px;border-radius:14px;background:rgba(253,254,255,.1);border:1.6px solid rgba(253,254,255,.22);
   display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--paper)}
@@ -367,7 +365,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
 .wtile:active{transform:scale(.94)}
 .wtile.used{opacity:.22;pointer-events:none}
 .wtile.del{background:transparent;border:1.6px solid var(--slate);color:var(--paper);font-size:16px}
-.mkinput{letter-spacing:0;font-size:19px;text-align:left}
 .mkchk{line-height:1.7}
 .mkchk .note{display:block;margin-top:6px;color:var(--mist);font-weight:600;font-size:13px}
 .face.backf .exspk{width:40px;height:40px;font-size:15px;margin-top:2px}
@@ -682,7 +679,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
     <div class="splad" id="spLad"></div>
     <div class="slots" id="spSlots"></div>
     <div class="tiles" id="spTiles"></div>
-    <input class="spinput" id="spInput" style="display:none" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어로 써 보기">
     <div class="fb" id="spFb"></div>
     <div class="btnrow">
       <button class="bigbtn g" id="spHint" onclick="spHint()">힌트</button>
@@ -703,7 +699,8 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
         <div class="word" id="dcWord"></div>
         <button class="spk" id="dcSpk" style="position:absolute;top:-22px;left:16px" onclick="dictSpeak()">🔊</button>
       </div>
-      <input class="spinput" id="dcInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="영어로 쓰기" onkeydown="if(event.key==='Enter')dictNext()">
+      <div class="slots" id="dcSlots"></div>
+      <div class="tiles" id="dcTiles"></div>
       <p class="tip" style="text-align:center">진짜 시험처럼 — 정답은 다 풀고 나서 한꺼번에 알려 줄게</p>
       <div class="btnrow"><button class="bigbtn o" id="dcGo" onclick="dictNext()">다음 →</button></div>
     </div>
@@ -721,7 +718,6 @@ nav{position:fixed;bottom:0;left:0;right:0;z-index:50}
     <div class="mkdir" id="mkDir"></div>
     <div class="slots" id="mkSlots"></div>
     <div class="tiles" id="mkTiles"></div>
-    <input class="spinput mkinput" id="mkInput" style="display:none" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" placeholder="여기에 영어 문장을 써 봐">
     <div class="fb" id="mkFb"></div>
     <div class="btnrow">
       <button class="bigbtn g" id="mkAns" onclick="mkAnswer()">답</button>
@@ -3479,19 +3475,47 @@ function showDict(){
   $("dcFill").style.width=(dq.idx/dq.list.length*100)+"%";
   $("dcCount").textContent=(dq.idx+1)+"/"+dq.list.length;
   $("dcDir").textContent=(dq.review?"복습 받아쓰기":"승급 받아쓰기")+" · "+
-    (q.f==="listen"?"듣고 영어로 쓰기":q.f==="listenMean"?"듣고 쓰기 (뜻 힌트)":"뜻 보고 영어로 쓰기");
+    (q.f==="listen"?"듣고 글자 누르기":q.f==="listenMean"?"듣고 글자 누르기 (뜻 힌트)":"뜻 보고 글자 누르기")+" · 함정 글자 3개";
   $("dcWord").textContent=(q.f==="listen")?"🔊":w[1];
   $("dcSpk").style.display=(q.f==="mean")?"none":"";
-  const inp=$("dcInput");inp.value=q.ans||"";
+  /* 버튼형 받아쓰기 — 단어 글자 + 함정 글자 3개를 섞은 버튼을 순서대로 누른다 (2026-11-08 「버튼 클릭형」) */
+  if(!q.tiles){
+    const word=w[0].toLowerCase(),tiles=word.split(""),extra="aeiourstnlmcdhpgbky".split("");
+    while(tiles.length<word.length+3){
+      const c=extra[ri(0,extra.length-1)];
+      if(word.indexOf(c)<0||tiles.filter(function(x){return x===c;}).length<2)tiles.push(c);
+    }
+    q.tiles=shuffle(tiles);q.slots=word.split("").map(function(){return "";});q.used={};q.order=[];
+  }
+  paintDict();
   $("dcGo").textContent=(dq.idx+1>=dq.list.length)?"제출하기":"다음 →";
   show("scr-dict");
   if(q.f!=="mean")setTimeout(function(){playPron(w[0]);},250);
-  setTimeout(function(){try{inp.focus();}catch(e){}},120);
+}
+function dcShow(ch){return ch===" "?"␣":esc(ch);}
+function paintDict(){
+  const q=dq.list[dq.idx];
+  $("dcSlots").innerHTML=q.slots.map(function(ch){return '<div class="slot">'+(ch?dcShow(ch):"")+"</div>";}).join("");
+  let th="";
+  q.tiles.forEach(function(ch,i){th+='<button class="tile'+(q.used[i]?" used":"")+'" onclick="dcTap('+i+')">'+dcShow(ch)+"</button>";});
+  th+='<button class="tile del" onclick="dcDel()">←</button>';
+  $("dcTiles").innerHTML=th;
+}
+function dcTap(i){
+  const q=dq&&dq.list[dq.idx];if(!q||q.used[i])return;
+  const pos=q.slots.indexOf("");if(pos<0)return;
+  q.slots[pos]=q.tiles[i];q.used[i]=true;q.order.push([pos,i]);q.skip=0;
+  paintDict();
+}
+function dcDel(){
+  const q=dq&&dq.list[dq.idx];if(!q||!q.order.length)return;
+  const last=q.order.pop();q.slots[last[0]]="";delete q.used[last[1]];
+  paintDict();
 }
 function dictSpeak(){if(dq&&dq.list[dq.idx])playPron(WORDS[dq.list[dq.idx].id][0]);}
 function dictNext(){
   const q=dq.list[dq.idx];
-  q.ans=($("dcInput").value||"").trim();
+  q.ans=q.slots.join("").trim();
   if(!q.ans&&!q.skip){q.skip=1;toast("모르면 비워 두고 한 번 더 누르면 넘어가");return;}
   dq.idx++;showDict();
 }
@@ -3558,7 +3582,7 @@ function gradeDict(){
 const SP_STAGE=[null,
  {name:"글자 모으기",dir:"글자를 순서대로 눌러 보자"},
  {name:"빈칸 채우기",dir:"빠진 글자를 채워 보자"},
- {name:"혼자 쓰기",dir:"보고 쓰지 말고 기억해서 써 보자"}];
+ {name:"혼자 모으기",dir:"함정 글자도 섞였어 — 기억해서 눌러 보자"}];
 function spLv(id){const w=S.words[id];return Math.min(3,Math.max(1,(w&&w.sp)||1));}
 function spBump(id,ok){
   const w=S.words[id];if(!w)return;
@@ -3613,31 +3637,24 @@ function showSpell(){
   for(let i=1;i<=3;i++)lad+='<span class="'+(i===lv?"on":"")+'">'+i+"단계 "+SP_STAGE[i].name+"</span>";
   $("spLad").innerHTML=lad;
   show("scr-spell");
-  const inp=$("spInput");
-  if(lv===3){
-    inp.style.display="";inp.value="";
-    $("spSlots").innerHTML="";$("spTiles").innerHTML="";
-    setTimeout(function(){try{inp.focus();}catch(e){}},120);
-  }else{
-    inp.style.display="none";
-    if(lv===2){
-      const n=word.length,hide=Math.max(1,Math.round(n*0.45));
-      const idx=shuffle(word.split("").map(function(_,i){return i;})).slice(0,hide);
-      word.split("").forEach(function(c,i){ if(idx.indexOf(i)<0)sp.cur.fixed[i]=c; });
-    }
-    sp.cur.slots=word.split("").map(function(_,i){return sp.cur.fixed[i]||"";});
-    let need=word.split("").filter(function(_,i){return !sp.cur.fixed[i];});
-    let tiles=need.slice();
-    if(lv===2){
-      const extra="aeiourstnlmcdhpgbky".split("");
-      while(tiles.length<need.length+2){
-        const c=extra[ri(0,extra.length-1)];
-        if(word.indexOf(c)<0||tiles.filter(function(x){return x===c;}).length<2)tiles.push(c);
-      }
-    }
-    sp.cur.tiles=shuffle(tiles);
-    paintSpell();
+  /* 모든 단계가 버튼형 — 3단계는 글자 칸이 다 비고 함정 글자가 3개 섞인다 (2026-11-08 「버튼 클릭형」) */
+  if(lv===2){
+    const n=word.length,hide=Math.max(1,Math.round(n*0.45));
+    const idx=shuffle(word.split("").map(function(_,i){return i;})).slice(0,hide);
+    word.split("").forEach(function(c,i){ if(idx.indexOf(i)<0)sp.cur.fixed[i]=c; });
   }
+  sp.cur.slots=word.split("").map(function(_,i){return sp.cur.fixed[i]||"";});
+  let need=word.split("").filter(function(_,i){return !sp.cur.fixed[i];});
+  let tiles=need.slice();
+  if(lv>=2){
+    const extra="aeiourstnlmcdhpgbky".split("");
+    while(tiles.length<need.length+(lv===3?3:2)){
+      const c=extra[ri(0,extra.length-1)];
+      if(word.indexOf(c)<0||tiles.filter(function(x){return x===c;}).length<2)tiles.push(c);
+    }
+  }
+  sp.cur.tiles=shuffle(tiles);
+  paintSpell();
 }
 function paintSpell(){
   const c=sp.cur,word=c.word;
@@ -3690,17 +3707,12 @@ function spHint(){
 function spGo(){
   const c=sp.cur;
   if(c.answered){sp.idx++;showSpell();return;}
-  const typed=(c.lv===3?($("spInput").value||""):c.slots.join("")).trim().toLowerCase();
+  const typed=c.slots.join("").trim().toLowerCase();
   if(!typed){toast("먼저 써 보자!");return;}
   const word=c.word.toLowerCase();
   const ok=typed===word;
   c.answered=true;
   c.result=word.split("").map(function(ch,i){return typed[i]===ch;});
-  if(c.lv===3){
-    $("spInput").style.display="none";
-    c.slots=c.word.split("");
-    c.fixed={};
-  }
   paintSpell();
   $("spHint").style.display="none";
   $("spGo").textContent=(sp.idx+1>=sp.list.length)?"끝내기 →":"다음 →";
@@ -3769,19 +3781,19 @@ function showMake(){
   mk.cur={it:it,parts:parts,tiles:tiles,slots:parts.map(function(){return "";}),used:{},order:[],stage:1,done:false,ok:false,showAns:false,revealed:false};
   $("mkFill").style.width=(mk.idx/mk.list.length*100)+"%";
   $("mkCount").textContent=(mk.idx+1)+"/"+mk.list.length;
-  $("mkInput").value="";
   $("mkFb").innerHTML="";
   show("scr-make");
   paintMake();
 }
 function paintMake(){
   const c=mk.cur,last=(mk.idx+1>=mk.list.length);
-  $("mkLad").innerHTML='<span class="'+(c.stage===1?"on":"")+'">1단계 순서 맞추기</span><span class="'+(c.stage===2?"on":"")+'">2단계 직접 쓰기</span>';
+  $("mkLad").innerHTML='<span class="'+(c.stage===1?"on":"")+'">1단계 순서 맞추기</span><span class="'+(c.stage===2?"on":"")+'">2단계 뜻 보고 만들기</span>';
   $("mkNext").textContent=last?"카드로 돌아가기":"다음 단어 →";
   $("mkAns").style.display=c.showAns?"":"none";
-  if(c.stage===1){
-    $("mkDir").textContent=c.done?"소리 내어 한 번 읽어 보자":"섞인 단어를 순서대로 놓아 문장을 만들어 봐";
-    $("mkInput").style.display="none";
+  /* 두 단계 모두 버튼형 — 2단계는 한국어 뜻만 보고, 함정 단어 2개가 섞인 버튼으로 문장을 만든다 (2026-11-08) */
+  {
+    $("mkDir").textContent=c.done?"소리 내어 한 번 읽어 보자":c.stage===1?"섞인 단어를 순서대로 놓아 문장을 만들어 봐":
+      (c.it.exKo?"«"+c.it.exKo+"» — 영어로 만들어 봐 (함정 단어 2개 섞임)":c.it.word+" 문장을 다시 만들어 봐 (함정 단어 2개 섞임)");
     let sh="";
     c.slots.forEach(function(t,i){
       sh+='<div class="wslot'+(t?(c.mark&&c.mark[i]?" ok":""):" empty")+'">'+esc(t||"·")+"</div>";
@@ -3794,12 +3806,8 @@ function paintMake(){
       th+='<button class="wtile del" onclick="mkDel()">←</button>';
       $("mkTiles").innerHTML=th;
     }
-    $("mkGo").textContent=c.done?"직접 써보기 ✏️":"확인";
-  }else{
-    $("mkDir").textContent=c.it.word+" 를 넣어서 네 문장을 써 봐";
-    $("mkSlots").innerHTML="";$("mkTiles").innerHTML="";
-    $("mkInput").style.display="";
-    $("mkGo").textContent=c.done?"다시 써보기":"확인";
+    $("mkGo").style.display=(c.done&&c.stage===2)?"none":"";
+    $("mkGo").textContent=c.done?"뜻 보고 만들기 ✏️":"확인";
   }
 }
 function mkTap(i){
@@ -3820,11 +3828,6 @@ function mkAnswer(){
   const c=mk.cur;if(!c||!c.showAns)return;
   c.showAns=false;
   speak(c.it.ex);
-  if(c.stage===2){
-    $("mkFb").innerHTML='<img src="'+CATS.comic+'"><div>이렇게 쓸 수도 있어 — <b>'+esc(c.it.ex)+'</b><br><span class="note">'+esc(c.it.exKo)+' · 똑같이 안 써도 돼</span></div>';
-    paintMake();
-    return;
-  }
   c.slots=c.parts.slice();c.mark=c.parts.map(function(){return true;});
   c.done=true;c.ok=false;c.revealed=true;
   $("mkFb").innerHTML='<img src="'+CATS.comic+'"><div>바른 순서는 <b>'+esc(c.it.ex)+'</b><br><span class="note">'+esc(c.it.exKo)+'</span></div>';
@@ -3832,8 +3835,7 @@ function mkAnswer(){
 }
 function mkGo(){
   const c=mk.cur;
-  if(c.stage===2)return mkWrite();
-  if(c.done)return mkStage2();
+  if(c.done){if(c.stage===1)mkStage2();return;}
   if(c.slots.some(function(t){return !t;})){toast("단어를 다 놓아 보자!");return;}
   /* 대소문자는 안 따진다 — "Rain, rain, go away." 처럼 같은 낱말이 대소문자만 다르게 두 번 나올 때
      화면상 같은 문장인데 틀렸다고 나오는 것을 막는다. */
@@ -3858,52 +3860,17 @@ function mkGo(){
 }
 function mkStage2(){
   const c=mk.cur;
-  c.stage=2;c.done=false;c.ok=false;c.showAns=false;
-  $("mkFb").innerHTML='<img src="'+CATS.pencil+'"><div>이번엔 네가 만들어 볼 차례야.<br><span class="note">예문이랑 달라도 괜찮아. 짧아도 괜찮아.</span></div>';
+  /* 함정 단어 2개 — 같은 묶음의 다른 예문에서, 없으면 기본 낱말에서 고른다 */
+  const low=c.parts.map(function(t){return t.toLowerCase();});
+  const pool=[];
+  mk.list.forEach(function(it){if(it!==c.it)it.ex.split(/\s+/).forEach(function(t){
+    if(low.indexOf(t.toLowerCase())<0&&pool.indexOf(t)<0)pool.push(t);});});
+  ["is","the","a","to","my","not"].forEach(function(t){if(low.indexOf(t)<0&&pool.indexOf(t)<0)pool.push(t);});
+  let tiles=shuffle(c.parts.concat(shuffle(pool).slice(0,2)));
+  c.stage=2;c.done=false;c.ok=false;c.showAns=false;c.mark=null;
+  c.tiles=tiles;c.slots=c.parts.map(function(){return "";});c.used={};c.order=[];
+  $("mkFb").innerHTML='<img src="'+CATS.pencil+'"><div>이번엔 뜻만 보고 만들어 볼 차례야.<br><span class="note">안 쓰는 단어가 2개 숨어 있어.</span></div>';
   paintMake();
-  setTimeout(function(){try{$("mkInput").focus();}catch(e){}},120);
-}
-function reEsc(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
-function mkHasWord(sentence,word){
-  const base=String(word||"").toLowerCase().trim();
-  if(!base)return false;
-  const forms=[base,base+"s",base+"es",base+"ed",base+"d",base+"ing"];
-  if(/y$/.test(base))forms.push(base.slice(0,-1)+"ies",base.slice(0,-1)+"ied");
-  if(/e$/.test(base))forms.push(base.slice(0,-1)+"ing",base.slice(0,-1)+"ed");
-  return forms.some(function(f){return new RegExp("(^|[^a-z])"+reEsc(f)+"([^a-z]|$)","i").test(sentence);});
-}
-function mkWrite(){
-  const c=mk.cur;
-  if(c.done){
-    c.done=false;$("mkFb").innerHTML="";paintMake();
-    setTimeout(function(){try{$("mkInput").focus();}catch(e){}},120);
-    return;
-  }
-  const raw=($("mkInput").value||"").trim();
-  if(!raw){toast("먼저 한 문장 써 보자!");return;}
-  if(/[ㄱ-ㆎ가-힣]/.test(raw)){
-    $("mkFb").innerHTML='<img src="'+CATS.comic+'">한글이 섞였어 — 영어로만 써 보자';
-    return;
-  }
-  const n=raw.split(/\s+/).length;
-  /* 정답 기준은 단어와 길이뿐. 대문자·마침표는 틀린 걸로 치지 않고 팁으로만 알려준다. */
-  const chk=[
-    [mkHasWord(raw,c.it.word),"<b>"+esc(c.it.word)+"</b> 가 들어갔나"],
-    [n>=3,"3단어 이상인가 (지금 "+n+"개)"]
-  ];
-  const tips=[];
-  if(!/^[A-Z]/.test(raw))tips.push("첫 글자는 대문자로");
-  if(!/[.?!]$/.test(raw))tips.push("끝에 . ? ! 붙이기");
-  const bad=chk.filter(function(x){return !x[0];}).length;
-  c.done=true;c.ok=!bad;
-  if(bad)c.showAns=true;
-  $("mkFb").innerHTML='<img src="'+CATS[bad?"scratch":"jump"]+'"><div class="mkchk">'+
-    (bad?"":"<b>맞았어! 네 문장이 됐어.</b><br>")+
-    chk.map(function(x){return (x[0]?"✅ ":"✏️ ")+x[1];}).join("<br>")+
-    '<span class="note">'+(bad?"✏️ 표시된 것만 고쳐 보자. 모르겠으면 «답»을 눌러도 돼."
-      :"문법까지는 고양이가 못 봐줘 — 소리 내어 한 번 읽어 보자."+(tips.length?"<br>이렇게 하면 더 좋아 — "+tips.join(", "):""))+'</span></div>';
-  paintMake();
-  speak(raw);
 }
 function mkNext(){
   if(mk.idx+1<mk.list.length){mk.idx++;showMake();}
@@ -4734,8 +4701,8 @@ function cmdPull(){
 /* ================= 자료 모으기 (사진) ================= */
 /* 사진도 별도 키다. 기록 doc 은 1MB 제한이라 사진이 섞이면 포인트·스트릭 저장이 통째로 실패한다. */
 const SHOT_LS="catstudy_shots";
-const SHOT_SUBJ=["수학","영어","국어","사회","과학","기타"];
-const SHOT_KIND=[["memo","외울 내용"],["book","문제집"],["exam","시험 범위"],["etc","그냥 보관"]];
+const SHOT_SUBJ=["수학","영어","국어","사회","역사","과학","기타"];
+const SHOT_KIND=[["memo","외울 내용"],["book","문제집"],["pre","예습 (다음에 배울 곳)"],["exam","시험 범위"],["etc","그냥 보관"]];
 const SHOT_MAX=60,SHOT_WAIT=5;
 let SHOTS=null,shotDraft=null,shotPickSel={subj:"수학",kind:"memo"},shotAsk=null;
 

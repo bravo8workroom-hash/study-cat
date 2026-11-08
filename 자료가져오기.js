@@ -21,7 +21,7 @@ const SB = {
 };
 const FAM_CODE = "CAT-STUDY1";
 const OUT = path.join(__dirname, "자료수집");
-const KINDS = { memo: "외울내용", book: "문제집", exam: "시험범위", etc: "보관" };
+const KINDS = { memo: "외울내용", book: "문제집", pre: "예습", exam: "시험범위", etc: "보관" };
 
 function rpc(fn, body) {
   return fetch(SB.url + "/rest/v1/rpc/" + fn, {
